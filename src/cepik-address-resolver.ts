@@ -1,0 +1,63 @@
+export class CepikAddressResolver {
+
+    private static decode(b64name: string): string {
+        return Buffer.from(b64name, `base64`).toString(`utf-8`);
+    }
+
+    private static get host(): string {
+        return this.decode(`aHR0cHM6Ly9hcGkuY2VwaWsuZ292LnBsLw==`);
+    };
+
+    public static get vehiclesEndpoint(): string {
+        return `${this.host}/${this.decode(`cG9qYXpkeQ==`)}`;
+    };
+
+    public static getEndpointForVehicle(vehicleId: string): string {
+        return `${this.vehiclesEndpoint}/${vehicleId}`;
+    };
+
+    public static get filesEndpoint(): string {
+        return `${this.host}/${this.decode(`cGxpa2k=`)}`
+    }
+
+    public static getEndpointForFile(fileId: string): string {
+        return `${this.filesEndpoint}/${fileId}`;
+    };
+
+    public static get drivingLicencesEndpoint(): string {
+        return `${this.host}/${this.decode(`cHJhd2EtamF6ZHk=`)}`;
+    };
+
+    public static getEndpointForDrivingLicence(licenceId: string): string {
+        return `${this.drivingLicencesEndpoint}/${licenceId}`;
+    };
+
+    public static get permissionsEndpoint(): string {
+        return `${this.host}/${this.decode(`dXByYXduaWVuaWE=`)}`;
+    };
+
+    public static getEndpointForPermission(permissionId: string): string {
+        return `${this.permissionsEndpoint}/${permissionId}`;
+    };
+
+    public static get dictionariesEndpoint(): string {
+        return `${this.host}/${this.decode(`c2xvd25pa2k=`)}`;
+    };
+
+    public static getEndpointForDictionary(dictionaryId: string): string {
+        return `${this.dictionariesEndpoint}/${dictionaryId}`
+    };
+    
+    public static get statisticsEndpoint(): string {
+        return `${this.host}/${this.decode(`c3RhdHlzdHlraQ==`)}`;
+    };
+
+    public static get versionEndpoint(): string {
+        return `${this.host}/${this.decode(`dmVyc2lvbg==`)}`;
+    };
+
+    public static get v1VersionEndpoint(): string {
+        return `${this.host}/${this.decode(`djEvdmVyc2lvbg==`)}`;
+    };
+
+};
