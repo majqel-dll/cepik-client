@@ -37,7 +37,7 @@ npm run coverage    # generate coverage report
 ```
 
 The package also includes a `prepare` script so that if you install directly
-directly from the Git repository (e.g. `npm install username/nbp-api-client`),
+directly from the Git repository (e.g. `npm install cepik-client`),
 it will compile automatically.
 
 ### 🤝 Contributing
@@ -53,14 +53,14 @@ fixes.
 
 ```typescript
 import {
-} from "nbp-api-client";
+} from "cepik-client";
 ```
 
 ### Types
 
 ```typescript
 import type {
-} from "nbp-api-client";
+} from "cepik-client";
 ```
 
 ## 🧪 Testing
@@ -95,7 +95,7 @@ The compiled code is located in the `dist/` directory.
 
 ## 🤝 Support
 
-If you encounter a problem or have a suggestion, please open an [issue on GitHub](https://github.com/miqel-dll/nbp-api-client/issues).
+If you encounter a problem or have a suggestion, please open an [issue on GitHub](https://github.com/miqel-dll/cepik-client/issues).
 
 Author: [miqel-dll](https://github.com/miqel-dll)
-Version: 0.0.6
+Version: 0.0.7

@@ -1,3 +1,5 @@
+import { StatisticsSubjectEnum } from "./enums.js";
+
 export class CepikAddressResolver {
 
     private static decode(b64name: string): string {
@@ -47,10 +49,14 @@ export class CepikAddressResolver {
     public static getEndpointForDictionary(dictionaryId: string): string {
         return `${this.dictionariesEndpoint}/${dictionaryId}`
     };
-    
+
     public static get statisticsEndpoint(): string {
         return `${this.host}/${this.decode(`c3RhdHlzdHlraQ==`)}`;
     };
+
+    public static getStatisticsEndpointFor(subject: StatisticsSubjectEnum): string {
+        return `${this.host}/${subject}`
+    }
 
     public static get versionEndpoint(): string {
         return `${this.host}/${this.decode(`dmVyc2lvbg==`)}`;

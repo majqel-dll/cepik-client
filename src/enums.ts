@@ -26,6 +26,9 @@ export enum VehicleProductionMethodEnum {
 
 };
 
-export enum StatisticsSubjects {
-
+export enum StatisticsSubjectEnum {
+    VEHICLES = `pojazdy`,
+    FILES = `pliki`,
+    ACTIVITY = `aktywnosc`,
+    DICTIONARIES = `slowniki`,
 };
