@@ -5,21 +5,21 @@ A modern TypeScript/JavaScript library for retrieving data from the public API o
 ## 📦 Installation
 
 ```bash
-npm install cepik-client
+npm install cepik-api-client
 ```
 
 ```bash
-yarn add cepik-client
+yarn add cepik-api-client
 ```
 
 ```bash
-pnpm add cepik-client
+pnpm add cepik-api-client
 ```
 
 ## 🚀 Quick Start
 
 ```typescript
-import { CEPIKClient } from "cepik-client";
+import { CEPIKClient } from "cepik-api-client";
 
 
 ```
@@ -37,7 +37,7 @@ npm run coverage    # generate coverage report
 ```
 
 The package also includes a `prepare` script so that if you install directly
-directly from the Git repository (e.g. `npm install cepik-client`),
+directly from the Git repository (e.g. `npm install cepik-api-client`),
 it will compile automatically.
 
 ### 🤝 Contributing
@@ -53,14 +53,14 @@ fixes.
 
 ```typescript
 import {
-} from "cepik-client";
+} from "cepik-api-client";
 ```
 
 ### Types
 
 ```typescript
 import type {
-} from "cepik-client";
+} from "cepik-api-client";
 ```
 
 ## 🧪 Testing
@@ -98,4 +98,4 @@ The compiled code is located in the `dist/` directory.
 If you encounter a problem or have a suggestion, please open an [issue on GitHub](https://github.com/miqel-dll/cepik-client/issues).
 
 Author: [miqel-dll](https://github.com/miqel-dll)
-Version: 0.0.7
+Version: 0.0.8

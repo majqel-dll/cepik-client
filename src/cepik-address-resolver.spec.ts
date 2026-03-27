@@ -1,5 +1,4 @@
 import { CepikAddressResolver } from "./cepik-address-resolver.js";
-import { CEPIKClient } from "./cepik-client.js";
 
 global.fetch = jest.fn();
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
