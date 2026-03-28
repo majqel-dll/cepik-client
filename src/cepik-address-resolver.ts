@@ -7,7 +7,7 @@ export class CepikAddressResolver {
     }
 
     private static get host(): string {
-        return this.decode(`aHR0cHM6Ly9hcGkuY2VwaWsuZ292LnBsLw==`);
+        return this.decode(`aHR0cHM6Ly9hcGkuY2VwaWsuZ292LnBs`);
     };
 
     public static get vehiclesEndpoint(): string {

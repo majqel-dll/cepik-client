@@ -1,14 +1,29 @@
-import { CepikApiLogger } from "./cepik-api-logger.js";
+import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
+import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
+import { GetVehicleDataParams } from "./types.js";
 
 export class CEPIKApiClient {
 
-    private logger: CepikApiLogger;
+    private logger: Logger;
 
     constructor() {
-        this.logger = new CepikApiLogger({ context: `CEPIK API Client` });
+        this.logger = new Logger({ context: `CEPIK API Client` });
     }
 
-    public async getVehiclesData(): Promise<unknown> {
+    public async getVehiclesData(
+        params: GetVehicleDataParams = {}
+    ): Promise<unknown> {
+
+        const { vehicleId } = params;
+
+        const endpoint = vehicleId
+            ? AddressResolver.getEndpointForVehicle(vehicleId)
+            : AddressResolver.vehiclesEndpoint;
+
+        this.logger.debug(endpoint);
+        const data = await fetch(endpoint);
+        this.logger.debug(data);
+        console.debug(data);
         return;
     };
 
