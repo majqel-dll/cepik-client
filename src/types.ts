@@ -255,3 +255,24 @@ export type GetStatisticsParams = BasicSearchParams & {
 };
 
 export type ColorCode = `RED` | `YELLOW` | `GREEN` | `DEFAULT` | `MAGENTA`;
+export interface HttpsRequestOptions {
+    method?: string;
+    headers?: Record<string, string>;
+    ciphers?: string;
+    minVersion?: string;
+}
+
+export interface IncomingMessage {
+    statusCode?: number;
+    headers: Record<string, string | string[] | undefined>;
+    on(event: 'data', listener: (chunk: string) => void): void;
+    on(event: 'end', listener: () => void): void;
+}
+
+export interface ClientRequest {
+    on(event: 'error', listener: (error: Error) => void): void;
+}
+
+export interface HttpsModule {
+    get(url: string, options: HttpsRequestOptions, callback: (res: IncomingMessage) => void): ClientRequest;
+}

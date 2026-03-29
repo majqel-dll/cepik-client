@@ -1,4 +1,5 @@
 import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
+import { HttpsModule } from "./types.js";
 
 export class CepikHttpClient {
 
@@ -19,7 +20,7 @@ export class CepikHttpClient {
         headers: Record<string, string>
     ): Promise<T> {
 
-        const https = await import('node:https');
+        const https = await import('node:https') as HttpsModule;
         const options = {
             method: 'GET',
             ciphers: 'DEFAULT@SECLEVEL=0',
@@ -33,7 +34,6 @@ export class CepikHttpClient {
         };
 
         return new Promise((resolve, reject) => {
-            //@ts-ignore
             const req = https.get(url, options, (res) => {
                 let data = '';
                 res.on('data', chunk => data += chunk);
