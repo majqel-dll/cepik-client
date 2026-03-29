@@ -2,16 +2,12 @@ import { StatisticsSubjectEnum } from "./enums.js";
 
 export class CepikAddressResolver {
 
-    private static decode(b64name: string): string {
-        return Buffer.from(b64name, `base64`).toString(`utf-8`);
-    }
-
     private static get host(): string {
-        return this.decode(`aHR0cHM6Ly9hcGkuY2VwaWsuZ292LnBs`);
+        return atob(`aHR0cHM6Ly9hcGkuY2VwaWsuZ292LnBs`);
     };
 
     public static get vehiclesEndpoint(): string {
-        return `${this.host}/${this.decode(`cG9qYXpkeQ==`)}`;
+        return `${this.host}/${atob(`cG9qYXpkeQ==`)}`;
     };
 
     public static getEndpointForVehicle(vehicleId: string): string {
@@ -19,7 +15,7 @@ export class CepikAddressResolver {
     };
 
     public static get filesEndpoint(): string {
-        return `${this.host}/${this.decode(`cGxpa2k=`)}`
+        return `${this.host}/${atob(`cGxpa2k=`)}`
     }
 
     public static getEndpointForFile(fileId: string): string {
@@ -27,7 +23,7 @@ export class CepikAddressResolver {
     };
 
     public static get drivingLicencesEndpoint(): string {
-        return `${this.host}/${this.decode(`cHJhd2EtamF6ZHk=`)}`;
+        return `${this.host}/${atob(`cHJhd2EtamF6ZHk=`)}`;
     };
 
     public static getEndpointForDrivingLicence(licenceId: string): string {
@@ -35,7 +31,7 @@ export class CepikAddressResolver {
     };
 
     public static get permissionsEndpoint(): string {
-        return `${this.host}/${this.decode(`dXByYXduaWVuaWE=`)}`;
+        return `${this.host}/${atob(`dXByYXduaWVuaWE=`)}`;
     };
 
     public static getEndpointForPermission(permissionId: string): string {
@@ -43,7 +39,7 @@ export class CepikAddressResolver {
     };
 
     public static get dictionariesEndpoint(): string {
-        return `${this.host}/${this.decode(`c2xvd25pa2k=`)}`;
+        return `${this.host}/${atob(`c2xvd25pa2k=`)}`;
     };
 
     public static getEndpointForDictionary(dictionaryId: string): string {
@@ -51,7 +47,7 @@ export class CepikAddressResolver {
     };
 
     public static get statisticsEndpoint(): string {
-        return `${this.host}/${this.decode(`c3RhdHlzdHlraQ==`)}`;
+        return `${this.host}/${atob(`c3RhdHlzdHlraQ==`)}`;
     };
 
     public static getStatisticsEndpointFor(subject: StatisticsSubjectEnum): string {
@@ -59,11 +55,11 @@ export class CepikAddressResolver {
     }
 
     public static get versionEndpoint(): string {
-        return `${this.host}/${this.decode(`dmVyc2lvbg==`)}`;
+        return `${this.host}/${atob(`dmVyc2lvbg==`)}`;
     };
 
     public static get v1VersionEndpoint(): string {
-        return `${this.host}/${this.decode(`djEvdmVyc2lvbg==`)}`;
+        return `${this.host}/${atob(`djEvdmVyc2lvbg==`)}`;
     };
 
 };

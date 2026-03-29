@@ -106,4 +106,4 @@ The compiled code is located in the `dist/` directory.
 If you encounter a problem or have a suggestion, please open an [issue on GitHub](https://github.com/miqel-dll/cepik-client/issues).
 
 Author: [miqel-dll](https://github.com/miqel-dll)
-Version: 0.0.11
+Version: 0.0.12

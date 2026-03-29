@@ -1,6 +1,7 @@
 import {
+    GetPermissionDataParams, GetSpecifiedVehicleDataResponse, GetStatisticsParams,
     GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
-    GetPermissionDataParams, GetStatisticsParams, GetVehicleDataParams
+    GetVehicleDataParams, GetVehicleDataResponse
 } from "./types.js";
 import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
@@ -14,22 +15,65 @@ export class CEPIKApiClient {
         this.logger = new Logger({ context: `CEPIK API Client` });
     }
 
-    public async getVehiclesData(
-        params: GetVehicleDataParams
-    ): Promise<unknown> {
+    private formDate(date: string | Date): string {
+        const dateObject = new Date(date);
 
-        const { vehicleId, voivodship, limit } = params;
+        if (!dateObject) {
+            throw new Error(`Incorrect date format.`);
+        };
 
-        let endpoint = vehicleId
-            ? AddressResolver.getEndpointForVehicle(vehicleId)
+        const year = dateObject.getFullYear();
+
+        const month = (dateObject.getMonth() + 1) >= 10
+            ? (dateObject.getMonth() + 1)
+            : `0${(dateObject.getMonth() + 1)}`;
+
+        const day = dateObject.getDate() >= 10
+            ? dateObject.getDate()
+            : `0${dateObject.getDate()}`;
+
+        return `${year}${month}${day}`;
+    };
+
+    public async getVehiclesData<T extends string | never>(
+        params: GetVehicleDataParams<T>
+    ): Promise<[T] extends [never]
+        ? GetVehicleDataResponse
+        : GetSpecifiedVehicleDataResponse
+    > {
+
+        let endpoint = 'vehicleId' in params
+            ? AddressResolver.getEndpointForVehicle(params?.vehicleId)
             : AddressResolver.vehiclesEndpoint;
 
-        endpoint += `?wojewodztwo=${voivodship}`;
+        if (!(`vehicleId` in params)) {
+
+            const { voivodship, limit, fromDate, toDate } = params;
+
+            const startDate = this.formDate(fromDate);
+            endpoint += `?wojewodztwo=${voivodship}&data-od=${startDate}`;
+
+            if (toDate) {
+                endpoint += `&data-do=${this.formDate(toDate)}`;
+            };
+
+        };
+
+        const requestInit: RequestInit = {
+            method: "GET",
+            headers: {
+                Accept: "*/*",
+                Connection: "keep-alive",
+                "Accept-Encoding": "gzip, deflate, br",
+            }
+        };
 
         this.logger.debug(endpoint);
-        const data = await fetch(endpoint);
+        const data = await fetch(endpoint, requestInit);
+
         this.logger.debug(data);
         console.debug(data);
+
         return;
     };
 
@@ -64,6 +108,3 @@ export class CEPIKApiClient {
     };
 
 }
-
-const client = new CEPIKApiClient();
-await client.getVehiclesData({ voivodship: VoivodeshipEnum.OPOLE });
