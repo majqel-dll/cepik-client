@@ -1,6 +1,10 @@
+import {
+    GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
+    GetPermissionDataParams, GetStatisticsParams, GetVehicleDataParams
+} from "./types.js";
 import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
-import { GetVehicleDataParams } from "./types.js";
+import { VoivodeshipEnum } from "./enums.js";
 
 export class CEPIKApiClient {
 
@@ -11,14 +15,16 @@ export class CEPIKApiClient {
     }
 
     public async getVehiclesData(
-        params: GetVehicleDataParams = {}
+        params: GetVehicleDataParams
     ): Promise<unknown> {
 
-        const { vehicleId } = params;
+        const { vehicleId, voivodship, limit } = params;
 
-        const endpoint = vehicleId
+        let endpoint = vehicleId
             ? AddressResolver.getEndpointForVehicle(vehicleId)
             : AddressResolver.vehiclesEndpoint;
+
+        endpoint += `?wojewodztwo=${voivodship}`;
 
         this.logger.debug(endpoint);
         const data = await fetch(endpoint);
@@ -27,27 +33,37 @@ export class CEPIKApiClient {
         return;
     };
 
-    public async getFilesData(): Promise<unknown> {
+    public async getFilesData(
+        params: GetFilesDataParams
+    ): Promise<unknown> {
         return;
     };
 
-    public async getDrivingLicencesData(): Promise<unknown> {
+    public async getDrivingLicencesData(
+        params: GetDrivingLicenceDataParams
+    ): Promise<unknown> {
         return;
     };
 
-    public async getPermissionsData(): Promise<unknown> {
+    public async getPermissionsData(
+        params: GetPermissionDataParams
+    ): Promise<unknown> {
         return;
     };
 
-    public async getDictionariesData(): Promise<unknown> {
+    public async getDictionariesData(
+        params: GetDictionariesDataParams
+    ): Promise<unknown> {
         return;
     };
 
-    public async getStatistics(): Promise<unknown> {
+    public async getStatistics(
+        params: GetStatisticsParams
+    ): Promise<unknown> {
         return;
     };
 
 }
 
 const client = new CEPIKApiClient();
-await client.getVehiclesData();
+await client.getVehiclesData({ voivodship: VoivodeshipEnum.OPOLE });

@@ -22,24 +22,42 @@ export class CepikApiLogger {
 
     };
 
-    private getTime(): string {
-        return new Date().toISOString().replace("T", " ");
+    private getTime = (): string => new Date().toISOString().replace("T", " ");
+
+    private formatMessage(
+        message: unknown
+    ): string {
+
+        if (typeof message === "string") {
+            return message;
+        }
+
+        try {
+            if (message === null || message === undefined) {
+                return String(message);
+            }
+            if (typeof message === "object") {
+                return JSON.stringify(message, null, 2);
+            }
+            return String(message);
+        } catch {
+            return "[unserializable message]";
+        }
+    }
+
+    private print(
+        level: "log" | "warn" | "error" | "debug",
+        color: ColorCode,
+        message: unknown
+    ): void {
+        const formattedMessage = this.formatMessage(message);
+        const output = `${this.colorCode[color]} [${this.context}] ${this.getTime()} | ${formattedMessage}${this.colorCode.DEFAULT}`;
+        console[level](output);
     };
 
-    public log(message: unknown): void {
-        console.log(`${this.colorCode.GREEN} [${this.context}] ${this.getTime()} | ${message}`)
-    };
-
-    public warn(message: unknown): void {
-        console.warn(`${this.colorCode.YELLOW} [${this.context}] ${this.getTime()} | ${message}`);
-    };
-
-    public error(message: unknown): void {
-        console.error(`${this.colorCode.RED} [${this.context}] ${this.getTime()} | ${message}`);
-    };
-
-    public debug(message: unknown): void {
-        console.debug(`${this.colorCode.MAGENTA} [${this.context}] ${this.getTime()} | ${message}`);
-    };
+    public log = (message: unknown): void => this.print("log", "GREEN", message);
+    public warn = (message: unknown): void => this.print("warn", "YELLOW", message);
+    public error = (message: unknown): void => this.print("error", "RED", message);
+    public debug = (message: unknown): void => this.print("debug", "MAGENTA", message);
 
 };
