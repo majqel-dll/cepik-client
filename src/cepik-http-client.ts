@@ -33,7 +33,8 @@ export class CepikHttpClient {
         };
 
         return new Promise((resolve, reject) => {
-            const req = https.get(url, (options as any), (res) => {
+            //@ts-ignore
+            const req = https.get(url, options, (res) => {
                 let data = '';
                 res.on('data', chunk => data += chunk);
                 res.on('end', () => {
