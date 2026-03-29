@@ -26,6 +26,8 @@ export class CepikHttpClient {
             minVersion: 'TLSv1',
             headers: {
                 'Accept': 'application/json',
+                "Accept-Encoding": "gzip, deflate, br",
+                Connection: "keep-alive",
                 ...headers
             },
         };
@@ -36,14 +38,26 @@ export class CepikHttpClient {
                 res.on('data', chunk => data += chunk);
                 res.on('end', () => {
                     if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+
                         try {
+
                             const isJson = res.headers['content-type']?.includes('application/json');
-                            resolve(isJson ? JSON.parse(data) : data as unknown as T);
-                        } catch (e) {
+                            const rateLimitingRemaining = res.headers[`x-rate-limit-remaining`]
+                                ? Number(res.headers[`x-rate-limit-remaining`])
+                                : undefined;
+                            resolve(isJson ? { ...JSON.parse(data), rateLimitingRemaining } : data as unknown as T);
+
+                        } catch (error) {
+
+                            this.logger.error(`Failed to parse response`, error)
                             reject(new Error("Failed to parse response"));
+
                         }
+
                     } else {
+
                         reject(new Error(`HTTP status ${res.statusCode}`));
+
                     }
                 });
             });
@@ -65,6 +79,8 @@ export class CepikHttpClient {
                 method: "GET",
                 headers: {
                     "Accept": "application/json",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    Connection: "keep-alive",
                     ...headers
                 }
             });

@@ -1,4 +1,4 @@
-import { DictionariesEnum, VoivodeshipEnum } from "./enums.js";
+import { DictionariesEnum, StatisticsSubjectEnum, VoivodeshipEnum } from "./enums.js";
 
 export type CepikApiLoggerConfiguration = {
     context?: string,
@@ -37,6 +37,7 @@ export type GetVehicleDataResponse = {
     data: GetVehicleDataResponseData[],
     links: GetVehicleDataResponseLinks,
     meta: GetVehicleDataResponseMeta,
+    rateLimitingRemaining: number,
 };
 
 type GetVehicleDataResponseData = {
@@ -230,6 +231,7 @@ export type GetSpecifiedVehicleDataResponse = {
     data: GetSpecifiedVehicleDataResponseData[],
     links: GetVehicleDataResponseLinks,
     meta: GetVehicleDataResponseMeta,
+    rateLimitingRemaining: number,
 };
 
 export type GetFilesDataParams = BasicSearchParams & {
@@ -249,7 +251,7 @@ export type GetDictionariesDataParams = BasicSearchParams & {
 };
 
 export type GetStatisticsParams = BasicSearchParams & {
-
+    subject: StatisticsSubjectEnum,
 };
 
 export type ColorCode = `RED` | `YELLOW` | `GREEN` | `DEFAULT` | `MAGENTA`;

@@ -4,9 +4,8 @@ import {
     GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
     GetVehicleDataParams, GetVehicleDataResponse
 } from "./types.js";
-import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
 import { CepikHttpClient as HttpClient } from "./cepik-http-client.js";
-import { VoivodeshipEnum } from "./enums.js";
+import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
 
 export class CEPIKApiClient {
 
@@ -46,7 +45,11 @@ export class CEPIKApiClient {
 
         if (!(`vehicleId` in params)) {
 
-            const { voivodeship, limit, fromDate, toDate } = params;
+            const {
+                voivodeship, limit, fromDate, toDate,
+                dateType, isRegistered, page, sort,
+                showAllFields,
+            } = params;
 
             const startDate = this.formDate(fromDate);
             endpoint += `?wojewodztwo=${voivodeship}&data-od=${startDate}`;
@@ -55,57 +58,106 @@ export class CEPIKApiClient {
                 endpoint += `&data-do=${this.formDate(toDate)}`;
             };
 
+            if (limit && limit !== 0 && !Number.isNaN(+limit)) {
+                endpoint += `&limit=${limit}`;
+            };
+
+            if (dateType && !Number.isNaN(+dateType)) {
+                endpoint += `&typ-daty=${dateType}`
+            };
+
+            if (isRegistered !== undefined && isRegistered !== null) {
+                endpoint += `&tylko-zarejestrowane=${isRegistered}`
+            };
+
+            if (showAllFields !== undefined && showAllFields !== null) {
+                endpoint += `&tylko-zarejestrowane=${showAllFields}`
+            };
+
+            if (page && page !== 0 && !Number.isNaN(+page)) {
+                endpoint += `&page=${page}`;
+            };
+
+            if (sort && Array.isArray(sort)) {
+                endpoint += `&sort=${sort.join(`,`)}`
+            };
+
         };
 
-        const requestInit: Record<string, string> = {
-            "Accept-Encoding": "gzip, deflate, br",
-            Connection: "keep-alive",
-            Accept: "*/*",
+        if (params?.fields && Array.isArray(params.fields)) {
+            endpoint += `&fields=${params.fields.join(`,`)}`
         };
 
-        this.logger.debug(endpoint);
-        const data = await this.httpClient.get(endpoint, requestInit);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetVehicleDataResponse
+            : GetSpecifiedVehicleDataResponse>(endpoint);
 
-        this.logger.debug(data);
-        console.debug(data);
-
-        return;
+        return response;
     };
 
     public async getFilesData(
         params: GetFilesDataParams
     ): Promise<unknown> {
+
+        let endpoint = 'fileId' in params
+            ? AddressResolver.getEndpointForVehicle(params?.fileId)
+            : AddressResolver.vehiclesEndpoint;
+
+        await this.httpClient.get(endpoint);
+
         return;
     };
 
     public async getDrivingLicencesData(
         params: GetDrivingLicenceDataParams
     ): Promise<unknown> {
+
+        let endpoint = 'drivingLicenceId' in params
+            ? AddressResolver.getEndpointForVehicle(params?.drivingLicenceId)
+            : AddressResolver.vehiclesEndpoint;
+
+        await this.httpClient.get(endpoint);
+
         return;
     };
 
     public async getPermissionsData(
         params: GetPermissionDataParams
     ): Promise<unknown> {
+
+        let endpoint = 'permissionId' in params
+            ? AddressResolver.getEndpointForVehicle(params?.permissionId)
+            : AddressResolver.vehiclesEndpoint;
+
+        await this.httpClient.get(endpoint);
+
         return;
     };
 
     public async getDictionariesData(
         params: GetDictionariesDataParams
     ): Promise<unknown> {
+
+        let endpoint = 'dictionary' in params
+            ? AddressResolver.getEndpointForVehicle(params?.dictionary)
+            : AddressResolver.vehiclesEndpoint;
+
+        await this.httpClient.get(endpoint);
+
         return;
     };
 
     public async getStatistics(
         params: GetStatisticsParams
     ): Promise<unknown> {
+
+        let endpoint = 'subject' in params
+            ? AddressResolver.getStatisticsEndpointFor(params?.subject)
+            : AddressResolver.statisticsEndpoint;
+
+        await this.httpClient.get(endpoint);
+
         return;
     };
 
 }
-
-const client = new CEPIKApiClient();
-await client.getVehiclesData({
-    voivodeship: VoivodeshipEnum.OPOLE,
-    fromDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
-});
