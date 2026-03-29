@@ -20,7 +20,7 @@ export class CepikHttpClient {
     ): Promise<T> {
 
         const https = await import('node:https');
-        const options: any = {
+        const options = {
             method: 'GET',
             ciphers: 'DEFAULT@SECLEVEL=0',
             minVersion: 'TLSv1',
@@ -33,7 +33,7 @@ export class CepikHttpClient {
         };
 
         return new Promise((resolve, reject) => {
-            const req = https.get(url, options, (res) => {
+            const req = https.get(url, (options as any), (res) => {
                 let data = '';
                 res.on('data', chunk => data += chunk);
                 res.on('end', () => {
