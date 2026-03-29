@@ -57,7 +57,13 @@ export class CepikApiLogger {
 
     public log = (message: unknown): void => this.print("log", "GREEN", message);
     public warn = (message: unknown): void => this.print("warn", "YELLOW", message);
-    public error = (message: unknown): void => this.print("error", "RED", message);
+    public error = (message: unknown, error?: unknown): void => {
+
+        this.print("error", "RED", message);
+        if (error) {
+            this.print("error", "RED", error);
+        }
+    }
     public debug = (message: unknown): void => this.print("debug", "MAGENTA", message);
 
 };

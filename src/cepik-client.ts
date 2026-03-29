@@ -1,19 +1,17 @@
+import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import {
     GetPermissionDataParams, GetSpecifiedVehicleDataResponse, GetStatisticsParams,
     GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
     GetVehicleDataParams, GetVehicleDataResponse
 } from "./types.js";
-import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
+import { CepikHttpClient as HttpClient } from "./cepik-http-client.js";
 import { VoivodeshipEnum } from "./enums.js";
 
 export class CEPIKApiClient {
 
-    private logger: Logger;
-
-    constructor() {
-        this.logger = new Logger({ context: `CEPIK API Client` });
-    }
+    private logger: Logger = new Logger({ context: `CEPIK API Client` });
+    private httpClient: HttpClient = new HttpClient();
 
     private formDate(date: string | Date): string {
         const dateObject = new Date(date);
@@ -35,7 +33,7 @@ export class CEPIKApiClient {
         return `${year}${month}${day}`;
     };
 
-    public async getVehiclesData<T extends string | never>(
+    public async getVehiclesData<T extends string | never = never>(
         params: GetVehicleDataParams<T>
     ): Promise<[T] extends [never]
         ? GetVehicleDataResponse
@@ -48,10 +46,10 @@ export class CEPIKApiClient {
 
         if (!(`vehicleId` in params)) {
 
-            const { voivodship, limit, fromDate, toDate } = params;
+            const { voivodeship, limit, fromDate, toDate } = params;
 
             const startDate = this.formDate(fromDate);
-            endpoint += `?wojewodztwo=${voivodship}&data-od=${startDate}`;
+            endpoint += `?wojewodztwo=${voivodeship}&data-od=${startDate}`;
 
             if (toDate) {
                 endpoint += `&data-do=${this.formDate(toDate)}`;
@@ -59,17 +57,14 @@ export class CEPIKApiClient {
 
         };
 
-        const requestInit: RequestInit = {
-            method: "GET",
-            headers: {
-                Accept: "*/*",
-                Connection: "keep-alive",
-                "Accept-Encoding": "gzip, deflate, br",
-            }
+        const requestInit: Record<string, string> = {
+            "Accept-Encoding": "gzip, deflate, br",
+            Connection: "keep-alive",
+            Accept: "*/*",
         };
 
         this.logger.debug(endpoint);
-        const data = await fetch(endpoint, requestInit);
+        const data = await this.httpClient.get(endpoint, requestInit);
 
         this.logger.debug(data);
         console.debug(data);
@@ -108,3 +103,9 @@ export class CEPIKApiClient {
     };
 
 }
+
+const client = new CEPIKApiClient();
+await client.getVehiclesData({
+    voivodeship: VoivodeshipEnum.OPOLE,
+    fromDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+});

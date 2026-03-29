@@ -10,7 +10,7 @@ export type BasicSearchParams = {
 
 export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
     ? BasicSearchParams & {
-        voivodship: VoivodeshipEnum,
+        voivodeship: VoivodeshipEnum,
         fromDate: Date | string,
         toDate?: Date | string,
         dateType?: 0 | 1,
