@@ -18,7 +18,7 @@ export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
         showAllFields?: boolean,
         fields?: Partial<GetVehicleDataResponseDataAttributes>[]
         page?: number,
-        sort?: string[],
+        sort?: Partial<GetVehicleDataResponseDataAttributes>[],
     } : {
         vehicleId: T,
         fields?: Partial<GetSpecifiedVehicleDataResponseAttributes>[]

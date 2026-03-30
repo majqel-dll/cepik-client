@@ -11,6 +11,15 @@ export class CEPIKApiClient {
 
     private logger: Logger = new Logger({ context: `CEPIK API Client` });
     private httpClient: HttpClient = new HttpClient();
+    private debug: boolean = false;
+
+    constructor(config?: { debug?: boolean }) {
+
+        if (config?.debug) {
+            this.debug = config.debug;
+        };
+
+    }
 
     private formDate(date: string | Date): string {
         const dateObject = new Date(date);
@@ -39,6 +48,7 @@ export class CEPIKApiClient {
         : GetSpecifiedVehicleDataResponse
     > {
 
+        const startTime = Date.now();
         let endpoint = 'vehicleId' in params
             ? AddressResolver.getEndpointForVehicle(params?.vehicleId)
             : AddressResolver.vehiclesEndpoint;
@@ -53,6 +63,10 @@ export class CEPIKApiClient {
 
             const startDate = this.formDate(fromDate);
             endpoint += `?wojewodztwo=${voivodeship}&data-od=${startDate}`;
+
+            if (toDate && new Date(fromDate) > new Date(toDate)) {
+                throw new Error(`The 'toDate' field can't be before 'fromDate'`);
+            };
 
             if (toDate) {
                 endpoint += `&data-do=${this.formDate(toDate)}`;
@@ -88,9 +102,18 @@ export class CEPIKApiClient {
             endpoint += `&fields=${params.fields.join(`,`)}`
         };
 
+        if (this.debug) {
+            this.logger.log(`Generated endpoint and query params: ${endpoint}`);
+        };
+
         const response = await this.httpClient.get<[T] extends [never]
             ? GetVehicleDataResponse
             : GetSpecifiedVehicleDataResponse>(endpoint);
+
+        if (response.meta && this.debug) {
+            this.logger.log(`Received response in ${Date.now() - startTime} ms:`);
+            this.logger.log(response.meta);
+        };
 
         return response;
     };
