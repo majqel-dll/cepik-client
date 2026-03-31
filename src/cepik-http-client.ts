@@ -91,7 +91,7 @@ export class CepikHttpClient {
             const contentType = response.headers.get("content-type");
             if (contentType?.includes("application/json")) {
                 const rateLimitingHeader = response.headers.get("x-rate-limit-remaining");
-                const rateLimitingRemaining = rateLimitingHeader !== null ? Number(rateLimitingHeader) : undefined;
+                const rateLimitingRemaining = rateLimitingHeader != null ? Number(rateLimitingHeader) : undefined;
                 return { ...await response.json(), rateLimitingRemaining };
             }
             return await response.text() as unknown as T;
