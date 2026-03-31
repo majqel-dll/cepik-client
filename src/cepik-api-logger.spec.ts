@@ -54,7 +54,7 @@ describe("CepikApiLogger", () => {
             expect(consoleLogSpy).toHaveBeenCalled();
             const output = consoleLogSpy.mock.calls[0][0];
             expect(output).toContain("Test message");
-            expect(output).toContain("\x1b[32m"); // GREEN color
+            expect(output).toContain("\x1b[32m");
         });
 
         it("Should log object messages", () => {
@@ -107,7 +107,7 @@ describe("CepikApiLogger", () => {
             logger.log("test");
             expect(consoleLogSpy).toHaveBeenCalled();
             const output = consoleLogSpy.mock.calls[0][0];
-            // Check for ISO timestamp format (YYYY-MM-DD HH:MM:SS)
+
             expect(output).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
         });
 
@@ -115,7 +115,7 @@ describe("CepikApiLogger", () => {
             logger.log("test");
             expect(consoleLogSpy).toHaveBeenCalled();
             const output = consoleLogSpy.mock.calls[0][0];
-            expect(output).toContain("\x1b[0m"); // DEFAULT color reset
+            expect(output).toContain("\x1b[0m");
         });
 
         it("Should handle arrays", () => {
@@ -135,7 +135,7 @@ describe("CepikApiLogger", () => {
             expect(consoleWarnSpy).toHaveBeenCalled();
             const output = consoleWarnSpy.mock.calls[0][0];
             expect(output).toContain("Warning message");
-            expect(output).toContain("\x1b[33m"); // YELLOW color
+            expect(output).toContain("\x1b[33m");
         });
 
         it("Should warn object messages", () => {
@@ -164,12 +164,13 @@ describe("CepikApiLogger", () => {
     });
 
     describe("error method", () => {
+
         it("Should error string messages", () => {
             logger.error("Error message");
             expect(consoleErrorSpy).toHaveBeenCalled();
             const output = consoleErrorSpy.mock.calls[0][0];
             expect(output).toContain("Error message");
-            expect(output).toContain("\x1b[31m"); // RED color
+            expect(output).toContain("\x1b[31m");
         });
 
         it("Should error with message and error object", () => {
@@ -225,7 +226,7 @@ describe("CepikApiLogger", () => {
             expect(consoleDebugSpy).toHaveBeenCalled();
             const output = consoleDebugSpy.mock.calls[0][0];
             expect(output).toContain("Debug message");
-            expect(output).toContain("\x1b[35m"); // MAGENTA color
+            expect(output).toContain("\x1b[35m");
         });
 
         it("Should debug object messages", () => {
@@ -293,7 +294,7 @@ describe("CepikApiLogger", () => {
             logger.log("");
             expect(consoleLogSpy).toHaveBeenCalled();
             const output = consoleLogSpy.mock.calls[0][0];
-            // Empty string should be returned as is
+
             expect(output).toBeTruthy();
         });
 
