@@ -1,6 +1,6 @@
 # cepik-api-client
 
-A modern TypeScript/JavaScript library for retrieving data from the public API of the Polish National Vehicles Database (CEPIK). It provides a simple-to-use interface for querying vehicle information, driving licenses, files, permissions, dictionaries, and statistics.
+A modern TypeScript/JavaScript library for retrieving data from the public API of the Polish National Vehicles Database (CEPIK). It provides a simple-to-use interface for querying vehicle information, driving licences, files, permissions, dictionaries, and statistics.
 
 The library is fully typed, written in modern JavaScript (ES Modules), and production-ready with complete tree-shaking support.
 
@@ -21,43 +21,33 @@ pnpm add cepik-api-client
 ## 🚀 Quick Start
 
 ```typescript
-import { CEPIKApiClient } from "cepik-api-client";
-import { VoivodeshipEnum, DictionariesEnum } from "cepik-api-client";
+import { CEPIKApiClient, VoivodeshipEnum, DictionariesEnum } from "cepik-api-client";
 
 const client = new CEPIKApiClient({ debug: true });
 
 // Search for vehicles in Mazovia voivodeship from 2024
-const vehicles = await client.getVehiclesData({
+const vehicles = await client.getVehicles({
   voivodeship: VoivodeshipEnum.MAZOVIA,
   fromDate: '2024-01-01',
   toDate: '2024-03-31',
   limit: 100,
-  page: 1
+  page: 1,
 });
 
-// Get specific vehicle by ID
-const vehicleDetails = await client.getVehiclesData({
-  vehicleId: 'ABC123DEF'
-});
+// Get a specific vehicle by ID
+const vehicle = await client.getVehicles({ vehicleId: 'ABC123DEF' });
 
-// Get vehicle files
-const files = await client.getFilesData({
-  limit: 50,
-  page: 1
-});
+// Get driving licences
+const licences = await client.getDrivingLicences({ limit: 50 });
 
-// Get driving licenses data
-const licenses = await client.getDrivingLicencesData({
-  limit: 50
-});
+// Get a specific dictionary
+const brands = await client.getDictionaries({ dictionary: DictionariesEnum.BRAND });
 
-// Get dictionaries (e.g., vehicle brands, types)
-const brands = await client.getDictionariesData({
-  dictionaryId: DictionariesEnum.BRAND
-});
-
-// Get statistics
+// Get general statistics
 const stats = await client.getStatistics();
+
+// Get vehicle statistics for a date
+const vehicleStats = await client.getVehicleStatistics({ statisticsDate: '2024-01-01' });
 ```
 
 ## ⚙️ Configuration
@@ -66,268 +56,289 @@ const stats = await client.getStatistics();
 import { CEPIKApiClient } from "cepik-api-client";
 
 const client = new CEPIKApiClient({
-  // Enable debug logging to console
-  debug: true
+  debug: true, // Enable request/response logging to console
 });
 ```
 
-## 📊 Getting Vehicles Data (getVehiclesData)
+When `debug` is enabled, the client logs the full request URL and response metadata (timing, pagination) to the console for every call.
 
-The `getVehiclesData()` method allows you to search for vehicle information in the CEPIK database. You can search by voivodeship and date range, or retrieve a specific vehicle by ID.
+---
 
-### Search vehicles by voivodeship and date range
+## 📊 `getVehicles(params)`
 
-```typescript
-// Search for vehicles in a specific voivodeship
-const vehicles = await client.getVehiclesData({
-  voivodeship: VoivodeshipEnum.MAZOVIA,
-  fromDate: '2024-01-01',
-  toDate: '2024-12-31',
-  limit: 100,
-  page: 1
-});
-```
+Search for vehicles by voivodeship and date range, or retrieve a specific vehicle by ID.
 
-### Get specific vehicle details
+### List vehicles
 
 ```typescript
-// Get detailed information about a specific vehicle
-const vehicleDetails = await client.getVehiclesData({
-  vehicleId: 'WVW3AA170AD000000',
-  fields: ['marka', 'model', 'rok-produkcji']
-});
-```
-
-### Filter and sort results
-
-```typescript
-// Search with filtering and pagination
-const vehicles = await client.getVehiclesData({
-  voivodeship: VoivodeshipEnum.LOWER_SILESIA,
-  fromDate: new Date('2024-01-01'),
-  toDate: new Date(),
+const vehicles = await client.getVehicles({
+  voivodeship: VoivodeshipEnum.MAZOVIA,  // required
+  fromDate: '2024-01-01',                // required
+  toDate: '2024-12-31',                  // optional
+  dateType: 0,                           // 0 = registration date, 1 = introduction date
   isRegistered: true,
   showAllFields: true,
-  limit: 50,
-  page: 2,
-  sort: ['marka', 'model']
-});
-```
-
-## 📁 Getting Files Data (getFilesData)
-
-The `getFilesData()` method allows you to retrieve file information from the CEPIK database.
-
-### Search all files
-
-```typescript
-// Get all available files
-const files = await client.getFilesData({
+  sort: ['marka', 'model'],
+  fields: ['marka', 'model', 'rok-produkcji'],
   limit: 100,
-  page: 1
+  page: 1,
 });
 ```
 
-### Get specific file
+### Get a specific vehicle
 
 ```typescript
-// Get details about a specific file
-const fileDetails = await client.getFilesData({
-  fileId: 'FILE123ABC'
+const vehicle = await client.getVehicles({
+  vehicleId: 'WVW3AA170AD000000',
+  fields: ['marka', 'model', 'rok-produkcji'],
 });
 ```
 
-### Filter files by date
+---
+
+## 📁 `getFiles(params)`
+
+Retrieve the list of data files available for download, or get details of a specific file.
+
+### List files
 
 ```typescript
-// Get files from a specific date range
-const files = await client.getFilesData({
-  fromDate: '2024-01-01',
-  toDate: '2024-03-31',
-  dateType: 0,  // 0 for creation date, 1 for modification date
-  limit: 50,
-  page: 1
-});
+const files = await client.getFiles({ limit: 100, page: 1 });
 ```
 
-## 🪪 Getting Driving Licenses Data (getDrivingLicencesData)
-
-The `getDrivingLicencesData()` method provides access to driving license information.
-
-### Search driving licenses
+### Get a specific file
 
 ```typescript
-// Search for driving licenses
-const licenses = await client.getDrivingLicencesData({
+const file = await client.getFiles({ fileId: 'FILE123ABC' });
+```
+
+---
+
+## 🪪 `getDrivingLicences(params)`
+
+Access driving licence statistics data.
+
+### List driving licences
+
+```typescript
+const licences = await client.getDrivingLicences({
+  filter: { 'wojewodztwo-kod': '14' },
+  sort: ['wiek'],
+  fields: ['plec', 'wiek', 'ilosc'],
   limit: 100,
-  page: 1
+  page: 1,
 });
 ```
 
-### Get specific license details
+### Get a specific driving licence record
 
 ```typescript
-// Get detailed information about a specific license
-const licenseDetails = await client.getDrivingLicencesData({
-  drivingLicenceId: 'LICENSE123ABC'
-});
+const licence = await client.getDrivingLicences({ drivingLicenceId: 'ID123' });
 ```
 
-### Filter licenses by date
+---
+
+## 🔐 `getPermissions(params)`
+
+Access driving permission (category) statistics data.
+
+### List permissions
 
 ```typescript
-// Get licenses from a specific date range
-const licenses = await client.getDrivingLicencesData({
-  fromDate: '2024-01-01',
-  toDate: '2024-03-31',
-  isRegistered: true,
+const permissions = await client.getPermissions({
+  filter: { 'kod-uprawnienia': 'B' },
+  sort: ['wiek'],
+  fields: ['kod-uprawnienia', 'plec', 'wiek', 'ilosc'],
   limit: 50,
-  page: 1
+  page: 1,
 });
 ```
 
-## 🔐 Getting Permissions Data (getPermissionsData)
-
-The `getPermissionsData()` method allows you to retrieve permission information from the CEPIK database.
-
-### Search permissions
+### Get a specific permission record
 
 ```typescript
-// Get available permissions
-const permissions = await client.getPermissionsData({
-  limit: 50,
-  page: 1
-});
+const permission = await client.getPermissions({ permissionId: 'ID456' });
 ```
 
-### Get specific permission details
+---
+
+## 📚 `getDictionaries(params?)`
+
+Access CEPIK reference dictionaries.
+
+### List all available dictionaries
 
 ```typescript
-// Get details about a specific permission
-const permissionDetails = await client.getPermissionsData({
-  permissionId: 'PERM123ABC'
-});
+const all = await client.getDictionaries({ limit: 100, page: 1 });
 ```
 
-## 📚 Getting Dictionaries (getDictionariesData)
-
-The `getDictionariesData()` method provides access to reference dictionaries used in CEPIK.
-
-### Get all dictionaries
-
-```typescript
-// List all available dictionaries
-const allDictionaries = await client.getDictionariesData({
-  limit: 100,
-  page: 1
-});
-```
-
-### Get specific dictionary
+### Get a specific dictionary
 
 ```typescript
 import { DictionariesEnum } from "cepik-api-client";
 
-// Get vehicle brands dictionary
-const brands = await client.getDictionariesData({
-  dictionaryId: DictionariesEnum.BRAND
-});
-
-// Get vehicle types dictionary
-const types = await client.getDictionariesData({
-  dictionaryId: DictionariesEnum.VEHICLE_TYPE
-});
-
-// Get fuel types dictionary
-const fuels = await client.getDictionariesData({
-  dictionaryId: DictionariesEnum.FUEL_TYPE
-});
+const brands   = await client.getDictionaries({ dictionary: DictionariesEnum.BRAND });
+const types    = await client.getDictionaries({ dictionary: DictionariesEnum.VEHICLE_TYPE });
+const fuels    = await client.getDictionaries({ dictionary: DictionariesEnum.FUEL_TYPE });
+const origins  = await client.getDictionaries({ dictionary: DictionariesEnum.VEHICLE_ORIGIN });
+const methods  = await client.getDictionaries({ dictionary: DictionariesEnum.PRODUCTION_METHOD });
+const regions  = await client.getDictionaries({ dictionary: DictionariesEnum.VOIVODESHIPS });
 ```
 
-### Available dictionaries
+---
 
-- `VOIVODESHIPS` - Polish voivodeships
-- `BRAND` - Vehicle brands
-- `VEHICLE_TYPE` - Types of vehicles
-- `FUEL_TYPE` - Fuel types
-- `VEHICLE_ORIGIN` - Vehicle origin
-- `PRODUCTION_METHOD` - Vehicle production methods
+## 📈 `getStatistics(params?)`
 
-## 📊 Getting Statistics (getStatistics)
-
-The `getStatistics()` method provides access to CEPIK statistics data.
-
-### Get all statistics
+Retrieve general CEPIK access statistics (page views and visits aggregated by date).
 
 ```typescript
-// Get overall statistics
+// All statistics
 const stats = await client.getStatistics();
+
+// With date range and pagination
+const stats = await client.getStatistics({
+  fromDate: '2024-01-01',
+  toDate: '2024-03-31',
+  limit: 50,
+  page: 1,
+});
 ```
 
-### Get statistics for specific subject
+---
+
+## 🚗 `getVehicleStatistics(params)`
+
+Retrieve vehicle search statistics, optionally broken down by voivodeship.
+
+### National statistics for a date
 
 ```typescript
-import { StatisticsSubjectEnum } from "cepik-api-client";
-
-// Get vehicle statistics
-const vehicleStats = await client.getStatistics({
-  subject: StatisticsSubjectEnum.VEHICLES
-});
-
-// Get file statistics
-const fileStats = await client.getStatistics({
-  subject: StatisticsSubjectEnum.FILES
-});
-
-// Get activity statistics
-const activityStats = await client.getStatistics({
-  subject: StatisticsSubjectEnum.ACTIVITY
-});
-
-// Get dictionaries statistics
-const dictStats = await client.getStatistics({
-  subject: StatisticsSubjectEnum.DICTIONARIES
+const stats = await client.getVehicleStatistics({
+  statisticsDate: '2024-01-15',
+  limit: 50,
+  page: 1,
 });
 ```
 
-## 🔧 Advanced Configuration
-
-### Debugging
+### Statistics for a specific voivodeship
 
 ```typescript
-const client = new CEPIKApiClient({
-  debug: true
+const stats = await client.getVehicleStatistics({
+  statisticsDate: '2024-01-15',
+  voivodeship: VoivodeshipEnum.MAZOVIA,
+});
+```
+
+---
+
+## 📂 `getFileStatistics(params?)`
+
+Retrieve file download statistics. The endpoint used depends on which parameters are provided:
+
+| Parameters provided         | Endpoint                                                      |
+| --------------------------- | ------------------------------------------------------------- |
+| none                        | `/statystyki/pliki` — global list                             |
+| `statisticsDate`            | `/statystyki/pliki/{date}` — all files for a date             |
+| `statisticsDate` + `fileId` | `/statystyki/pliki/{date}/{fileId}` — specific file on a date |
+| `fromDate` / `toDate`       | `/statystyki/pliki` with date range query params              |
+
+```typescript
+// Global list with date range
+const stats = await client.getFileStatistics({
+  fromDate: '2024-01-01',
+  toDate: '2024-03-31',
+  limit: 50,
 });
 
-// Logs with sent requests will appear in the console
-// 2026-03-31 14:30:45 | CEPIK API Client | Request sent to: ...
+// All files for a specific statistics date
+const statsForDate = await client.getFileStatistics({
+  statisticsDate: '2024-01-15',
+});
+
+// A specific file on a specific date
+const fileStats = await client.getFileStatistics({
+  statisticsDate: '2024-01-15',
+  fileId: 'FILE123ABC',
+});
 ```
+
+---
+
+## 🕐 `getActivityStatistics(params)`
+
+Retrieve API activity statistics. Without an `id`, returns daily aggregates; with an `id`, returns hourly breakdown for that day.
+
+### Daily activity for a date
+
+```typescript
+const daily = await client.getActivityStatistics({
+  statisticsDate: '2024-01-15',
+  limit: 50,
+  page: 1,
+});
+```
+
+### Hourly breakdown for a specific activity record
+
+```typescript
+const hourly = await client.getActivityStatistics({
+  statisticsDate: '2024-01-15',
+  id: 'RECORD_ID',
+});
+```
+
+---
+
+## 📖 `getDictionaryStatistics(params)`
+
+Retrieve statistics about dictionary usage for a given date.
+
+```typescript
+const stats = await client.getDictionaryStatistics({
+  statisticsDate: '2024-01-15',
+  limit: 50,
+  page: 1,
+});
+```
+
+---
+
+## 🔢 `getVersion(version?)`
+
+Retrieve the current API version info.
+
+```typescript
+// Default version endpoint
+const version = await client.getVersion();
+
+// v1 endpoint
+const v1 = await client.getVersion('v1');
+```
+
+---
 
 ## 📋 Supported Voivodeships
-
-The library supports all Polish voivodeships (wojewódzwa):
 
 ```typescript
 import { VoivodeshipEnum } from "cepik-api-client";
 
-// Available voivodeships:
-VoivodeshipEnum.LOWER_SILESIA         // 02
-VoivodeshipEnum.KUYAVIA_POMERANIA     // 04
-VoivodeshipEnum.LUBLIN                // 06
-VoivodeshipEnum.LUBUSZ                // 08
-VoivodeshipEnum.LODZ                  // 10
-VoivodeshipEnum.LESSER_POLAND         // 12
-VoivodeshipEnum.MAZOVIA               // 14
-VoivodeshipEnum.OPOLE                 // 16
-VoivodeshipEnum.SUBCARPATHIA          // 18
-VoivodeshipEnum.PODLASIE              // 20
-VoivodeshipEnum.POMERANIA             // 22
-VoivodeshipEnum.SILESIA               // 24
-VoivodeshipEnum.HOLY_CROSS            // 26
-VoivodeshipEnum.WARMIA_MASURIA        // 28
-VoivodeshipEnum.GREATER_POLAND        // 30
-VoivodeshipEnum.WEST_POMERANIA        // 32
-VoivodeshipEnum.UNKNOWN               // XX
+VoivodeshipEnum.LOWER_SILESIA         // "02"
+VoivodeshipEnum.KUYAVIA_POMERANIA     // "04"
+VoivodeshipEnum.LUBLIN                // "06"
+VoivodeshipEnum.LUBUSZ                // "08"
+VoivodeshipEnum.LODZ                  // "10"
+VoivodeshipEnum.LESSER_POLAND         // "12"
+VoivodeshipEnum.MAZOVIA               // "14"
+VoivodeshipEnum.OPOLE                 // "16"
+VoivodeshipEnum.SUBCARPATHIA          // "18"
+VoivodeshipEnum.PODLASIE              // "20"
+VoivodeshipEnum.POMERANIA             // "22"
+VoivodeshipEnum.SILESIA               // "24"
+VoivodeshipEnum.HOLY_CROSS            // "26"
+VoivodeshipEnum.WARMIA_MASURIA        // "28"
+VoivodeshipEnum.GREATER_POLAND        // "30"
+VoivodeshipEnum.WEST_POMERANIA        // "32"
+VoivodeshipEnum.UNKNOWN               // "XX"
 ```
 
 ## 📝 Types and Enums
@@ -336,43 +347,72 @@ VoivodeshipEnum.UNKNOWN               // XX
 
 ```typescript
 import {
-    VoivodeshipEnum,
-    DictionariesEnum,
-    VehicleBrandEnum,
-    VehicleTypeEnum,
-    FuelTypeEnum,
-    VehicleOriginEnum,
-    VehicleProductionMethodEnum,
-    StatisticsSubjectEnum,
+  VoivodeshipEnum,
+  DictionariesEnum,
+  VehicleBrandEnum,
 } from "cepik-api-client";
-
-// Voivodeships
-VoivodeshipEnum.MAZOVIA | VoivodeshipEnum.WARSAW | ...
-
-// Dictionary types
-DictionariesEnum.VOIVODESHIPS | DictionariesEnum.BRAND | DictionariesEnum.VEHICLE_TYPE | ...
-
-// Statistics subjects
-StatisticsSubjectEnum.VEHICLES | StatisticsSubjectEnum.FILES | StatisticsSubjectEnum.ACTIVITY | StatisticsSubjectEnum.DICTIONARIES
 ```
 
-### Types
+### Parameter types
 
 ```typescript
 import type {
-    GetVehicleDataParams,
-    GetFilesDataParams,
-    GetDrivingLicenceDataParams,
-    GetPermissionDataParams,
-    GetDictionariesDataParams,
-    GetStatisticsParams,
-    GetVehicleDataResponse,
-    GetFilesDataResponse,
-    GetDrivingLicencesResponse,
-    GetPermissionsResponse,
-    GetDictionariesResponse,
-    GetStatisticsResponse,
+  GetVehicleDataParams,
+  GetFilesDataParams,
+  GetDrivingLicenceDataParams,
+  GetPermissionDataParams,
+  GetDictionariesDataParams,
+  GetStatisticsParams,
+  GetVehicleStatisticsParams,
+  GetFileStatisticsParams,
+  GetActivityStatisticsParams,
+  GetDictionaryStatisticsParams,
 } from "cepik-api-client";
+```
+
+### Response types
+
+```typescript
+import type {
+  GetVehicleDataResponse,
+  GetSpecifiedVehicleDataResponse,
+  GetFilesDataResponse,
+  GetSpecifiedFileDataResponse,
+  GetDrivingLicencesResponse,
+  GetSpecifiedDrivingLicenceResponse,
+  GetPermissionsResponse,
+  GetSpecifiedPermissionResponse,
+  GetDictionariesResponse,
+  GetSpecifiedDictionaryResponse,
+  GetStatisticsResponse,
+  GetVehicleStatisticsResponse,
+  GetSpecifiedVehicleStatisticsResponse,
+  GetFileStatisticsResponse,
+  GetSpecifiedFileStatisticsResponse,
+  GetActivityStatisticsResponse,
+  GetSpecifiedActivityStatisticsResponse,
+  GetDictionaryStatisticsResponse,
+  ErrorResponse,
+  VersionResponse,
+} from "cepik-api-client";
+```
+
+### Error handling
+
+When the API returns an error, the client throws an `ErrorResponse` object:
+
+```typescript
+import type { ErrorResponse } from "cepik-api-client";
+
+try {
+  const vehicles = await client.getVehicles({
+    voivodeship: VoivodeshipEnum.MAZOVIA,
+    fromDate: '2024-01-01',
+  });
+} catch (error) {
+  const err = error as ErrorResponse;
+  console.error(err['error-code'], err['errorr-reason']);
+}
 ```
 
 ## 🧪 Testing
@@ -393,11 +433,11 @@ npm run lint
 npm run build
 ```
 
-The compiled code is located in the `dist/` directory.
+The compiled output is placed in the `dist/` directory.
 
 ## 📚 Resources
 
-- [Official CEPIK API](https://www.gov.pl/web/cepik/api-dla-centralnej-ewidencji-pojazdow-i-kierowcow-api-do-cepik)
+- [CEPIK on gov.pl](https://www.gov.pl/web/cepik/api-dla-centralnej-ewidencji-pojazdow-i-kierowcow-api-do-cepik)
 - [CEPIK API Documentation](https://api.cepik.gov.pl/doc) - Details about endpoints, formats, and limitations
 - [Dictionaries](https://api.cepik.gov.pl/slowniki) - Reference data and dictionaries used in the project
 - [CEPIK Official Website](https://www.gov.pl/web/cepik) - Polish Central Register of Vehicles and Drivers
@@ -413,4 +453,4 @@ If you encounter a problem or have a suggestion, please open an [issue on GitHub
 ---
 
 **Author**: [miqel-dll](https://github.com/miqel-dll)
-**Version**: 0.5.0
+**Version**: 0.5.1
