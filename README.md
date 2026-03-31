@@ -446,11 +446,7 @@ The compiled output is placed in the `dist/` directory.
 
 [MIT © 2026](./LICENSE) [miqel-dll](https://github.com/miqel-dll)
 
-## 🤝 Support
-
-If you encounter a problem or have a suggestion, please open an [issue on GitHub](https://github.com/miqel-dll/cepik-client/issues).
-
 ---
 
 **Author**: [miqel-dll](https://github.com/miqel-dll)
-**Version**: 1.0.1
+**Version**: 1.0.2
