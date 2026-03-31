@@ -63,7 +63,7 @@ describe("CEPIKApiClient", () => {
             it("Should call /pojazdy with wojewodztwo and data-od", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                 });
 
                 expect(getCalledUrl()).toContain("/pojazdy");
@@ -71,11 +71,23 @@ describe("CEPIKApiClient", () => {
                 expect(getCalledUrl()).toContain("data-od=20230115");
             });
 
+            it("Should format ISO date string (UTC midnight) correctly regardless of local timezone", async () => {
+
+                await client.getVehicles({
+                    voivodeship: VoivodeshipEnum.MAZOVIA,
+                    fromDate: "2023-01-15",
+                    toDate: "2023-12-31",
+                });
+
+                expect(getCalledUrl()).toContain("data-od=20230115");
+                expect(getCalledUrl()).toContain("data-do=20231231");
+            });
+
             it("Should include data-do when toDate is provided", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.LOWER_SILESIA,
-                    fromDate: new Date(2023, 0, 1),
-                    toDate: new Date(2023, 11, 31),
+                    fromDate: "2023-01-01",
+                    toDate: "2023-12-31",
                 });
 
                 expect(getCalledUrl()).toContain("data-do=20231231");
@@ -84,7 +96,7 @@ describe("CEPIKApiClient", () => {
             it("Should append limit and page as query params", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     limit: 50,
                     page: 3,
                 });
@@ -96,7 +108,7 @@ describe("CEPIKApiClient", () => {
             it("Should append sort and fields as query params", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     sort: ["marka", "model"] as never[],
                     fields: ["marka", "rok-produkcji"] as never[],
                 });
@@ -108,7 +120,7 @@ describe("CEPIKApiClient", () => {
             it("Should append typ-daty when dateType is provided", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     dateType: 1,
                 });
 
@@ -118,7 +130,7 @@ describe("CEPIKApiClient", () => {
             it("Should append typ-daty=0 when dateType is 0", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     dateType: 0,
                 });
 
@@ -128,7 +140,7 @@ describe("CEPIKApiClient", () => {
             it("Should append tylko-zarejestrowane when isRegistered is provided", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     isRegistered: true,
                 });
 
@@ -138,7 +150,7 @@ describe("CEPIKApiClient", () => {
             it("Should append pokaz-wszystkie-pola when showAllFields is provided", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                     showAllFields: true,
                 });
 
@@ -148,7 +160,7 @@ describe("CEPIKApiClient", () => {
             it("Should NOT include voivodeship or fromDate twice in the URL", async () => {
                 await client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 0, 15),
+                    fromDate: "2023-01-15",
                 });
 
                 const url = getCalledUrl();
@@ -159,8 +171,8 @@ describe("CEPIKApiClient", () => {
             it("Should throw when toDate is before fromDate", async () => {
                 await expect(client.getVehicles({
                     voivodeship: VoivodeshipEnum.MAZOVIA,
-                    fromDate: new Date(2023, 5, 15),
-                    toDate: new Date(2023, 0, 1),
+                    fromDate: "2023-06-15",
+                    toDate: "2023-01-01",
                 })).rejects.toThrow("The 'toDate' field can't be before 'fromDate'");
             });
 
@@ -299,8 +311,8 @@ describe("CEPIKApiClient", () => {
 
         it("Should append data-od and data-do when date range provided", async () => {
             await client.getStatistics({
-                fromDate: new Date(2023, 0, 1),
-                toDate: new Date(2023, 11, 31),
+                fromDate: "2023-01-01",
+                toDate: "2023-12-31",
             });
 
             expect(getCalledUrl()).toContain("data-od=20230101");
@@ -319,7 +331,7 @@ describe("CEPIKApiClient", () => {
     describe("getVehicleStatistics", () => {
 
         it("Should call /statystyki/pojazdy/{date} when voivodeship is not provided", async () => {
-            await client.getVehicleStatistics({ statisticsDate: new Date(2023, 0, 15) });
+            await client.getVehicleStatistics({ statisticsDate: "2023-01-15" });
 
             expect(getCalledUrl()).toContain("/statystyki/pojazdy/20230115");
             expect(getCalledUrl()).not.toMatch(/\/statystyki\/pojazdy\/20230115\//);
@@ -327,7 +339,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should call /statystyki/pojazdy/{date}/{voivodeship} when voivodeship is provided", async () => {
             await client.getVehicleStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 voivodeship: VoivodeshipEnum.MAZOVIA,
             });
 
@@ -336,7 +348,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should append limit and page for list", async () => {
             await client.getVehicleStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 limit: 25,
                 page: 2,
             });
@@ -357,8 +369,8 @@ describe("CEPIKApiClient", () => {
 
         it("Should append data-od and data-do when date range given without statisticsDate", async () => {
             await client.getFileStatistics({
-                fromDate: new Date(2023, 0, 1),
-                toDate: new Date(2023, 5, 30),
+                fromDate: "2023-01-01",
+                toDate: "2023-06-30",
             });
 
             const url = getCalledUrl();
@@ -368,7 +380,7 @@ describe("CEPIKApiClient", () => {
         });
 
         it("Should call /statystyki/pliki/{date} when statisticsDate is provided alone", async () => {
-            await client.getFileStatistics({ statisticsDate: new Date(2023, 0, 15) });
+            await client.getFileStatistics({ statisticsDate: "2023-01-15" });
 
             const url = getCalledUrl();
             expect(url).toContain("/statystyki/pliki/20230115");
@@ -377,9 +389,9 @@ describe("CEPIKApiClient", () => {
 
         it("Should strip fromDate and toDate from query when statisticsDate is set", async () => {
             await client.getFileStatistics({
-                statisticsDate: new Date(2023, 0, 15),
-                fromDate: new Date(2022, 0, 1),
-                toDate: new Date(2022, 11, 31),
+                statisticsDate: "2023-01-15",
+                fromDate: "2022-01-01",
+                toDate: "2022-12-31",
             });
 
             const url = getCalledUrl();
@@ -390,7 +402,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should call /statystyki/pliki/{date}/{fileId} when both are provided", async () => {
             await client.getFileStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 fileId: "file-007",
             });
 
@@ -399,7 +411,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should strip statisticsDate and fileId from query but keep remaining params", async () => {
             await client.getFileStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 fileId: "file-007",
                 limit: 10,
             });
@@ -415,7 +427,7 @@ describe("CEPIKApiClient", () => {
     describe("getActivityStatistics", () => {
 
         it("Should call /statystyki/aktywnosc/{date} when id is not provided", async () => {
-            await client.getActivityStatistics({ statisticsDate: new Date(2023, 0, 15) });
+            await client.getActivityStatistics({ statisticsDate: "2023-01-15" });
 
             const url = getCalledUrl();
             expect(url).toContain("/statystyki/aktywnosc/20230115");
@@ -424,7 +436,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should call /statystyki/aktywnosc/{date}/{id} when id is provided", async () => {
             await client.getActivityStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 id: "act-001",
             });
 
@@ -433,7 +445,7 @@ describe("CEPIKApiClient", () => {
 
         it("Should append limit and page for list", async () => {
             await client.getActivityStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 limit: 50,
                 page: 1,
             });
@@ -447,14 +459,14 @@ describe("CEPIKApiClient", () => {
     describe("getDictionaryStatistics", () => {
 
         it("Should call /statystyki/slowniki/{date}", async () => {
-            await client.getDictionaryStatistics({ statisticsDate: new Date(2023, 0, 15) });
+            await client.getDictionaryStatistics({ statisticsDate: "2023-01-15" });
 
             expect(getCalledUrl()).toContain("/statystyki/slowniki/20230115");
         });
 
         it("Should append limit and page", async () => {
             await client.getDictionaryStatistics({
-                statisticsDate: new Date(2023, 0, 15),
+                statisticsDate: "2023-01-15",
                 limit: 20,
                 page: 2,
             });
@@ -594,7 +606,7 @@ describe("CEPIKApiClient", () => {
         it("Should throw when limit is less than 1", async () => {
             await expect(client.getVehicles({
                 voivodeship: VoivodeshipEnum.MAZOVIA,
-                fromDate: new Date(2023, 0, 15),
+                fromDate: "2023-01-15",
                 limit: 0,
             })).rejects.toThrow("limit must be an integer between 1 and 500");
         });
@@ -602,7 +614,7 @@ describe("CEPIKApiClient", () => {
         it("Should throw when limit exceeds 500", async () => {
             await expect(client.getVehicles({
                 voivodeship: VoivodeshipEnum.MAZOVIA,
-                fromDate: new Date(2023, 0, 15),
+                fromDate: "2023-01-15",
                 limit: 501,
             })).rejects.toThrow("limit must be an integer between 1 and 500");
         });
@@ -610,7 +622,7 @@ describe("CEPIKApiClient", () => {
         it("Should throw when page is less than 1", async () => {
             await expect(client.getVehicles({
                 voivodeship: VoivodeshipEnum.MAZOVIA,
-                fromDate: new Date(2023, 0, 15),
+                fromDate: "2023-01-15",
                 page: 0,
             })).rejects.toThrow("page must be a positive integer");
         });
@@ -618,7 +630,7 @@ describe("CEPIKApiClient", () => {
         it("Should throw when dateType is not 0 or 1", async () => {
             await expect(client.getVehicles({
                 voivodeship: VoivodeshipEnum.MAZOVIA,
-                fromDate: new Date(2023, 0, 15),
+                fromDate: "2023-01-15",
                 dateType: 2 as never,
             })).rejects.toThrow("dateType must be 0 or 1");
         });

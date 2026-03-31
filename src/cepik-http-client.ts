@@ -89,9 +89,12 @@ export class CepikHttpClient {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const contentType = response.headers.get("content-type");
-            return contentType?.includes("application/json")
-                ? await response.json()
-                : await response.text() as unknown as T;
+            if (contentType?.includes("application/json")) {
+                const rateLimitingHeader = response.headers.get("x-rate-limit-remaining");
+                const rateLimitingRemaining = rateLimitingHeader !== null ? Number(rateLimitingHeader) : undefined;
+                return { ...await response.json(), rateLimitingRemaining };
+            }
+            return await response.text() as unknown as T;
 
         } catch (error) {
 

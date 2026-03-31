@@ -35,9 +35,9 @@ export class CEPIKApiClient {
             throw new Error(`Incorrect date format.`);
         }
 
-        const year = dateObject.getFullYear();
-        const month = String(dateObject.getMonth() + 1).padStart(2, "0");
-        const day = String(dateObject.getDate()).padStart(2, "0");
+        const year = dateObject.getUTCFullYear();
+        const month = String(dateObject.getUTCMonth() + 1).padStart(2, "0");
+        const day = String(dateObject.getUTCDate()).padStart(2, "0");
 
         return `${year}${month}${day}`;
     };
@@ -49,7 +49,7 @@ export class CEPIKApiClient {
     };
 
     private isErrorResponse(response: unknown): response is ErrorResponse {
-        return typeof response === "object" && response !== null && "error-code" in (response as ErrorResponse);
+        return typeof response === "object" && response !== null && "error-code" in response;
     }
 
     private async request<T>(endpoint: string, startTime: number): Promise<T> {
@@ -168,13 +168,13 @@ export class CEPIKApiClient {
         if (!(`vehicleId` in params)) {
 
             const { voivodeship, fromDate, toDate } = params;
-            const startDate = this.formDate(fromDate);
-
-            endpoint += `?wojewodztwo=${voivodeship}&data-od=${startDate}`;
 
             if (toDate && new Date(fromDate) > new Date(toDate)) {
                 throw new Error(`The 'toDate' field can't be before 'fromDate'`);
             };
+
+            const startDate = this.formDate(fromDate);
+            endpoint += `?wojewodztwo=${voivodeship}&data-od=${startDate}`;
 
             const keysAlreadyInUrl = ['fromDate', 'voivodeship'];
             const vehicleQueryParams = Object.fromEntries(
@@ -381,18 +381,12 @@ export class CEPIKApiClient {
         version?: ApiVersions
     ): Promise<VersionResponse> {
 
-        let endpoint: string = ((version: ApiVersions) => {
-            switch (version) {
-                case "v1": return AddressResolver.v1VersionEndpoint;
-                default: return AddressResolver.versionEndpoint;
-            }
-        })(version);
+        const startTime = Date.now();
+        const endpoint = version === "v1"
+            ? AddressResolver.v1VersionEndpoint
+            : AddressResolver.versionEndpoint;
 
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
-
-        return await this.request<VersionResponse>(endpoint, Date.now());
+        return await this.request<VersionResponse>(endpoint, startTime);
     };
 
 }

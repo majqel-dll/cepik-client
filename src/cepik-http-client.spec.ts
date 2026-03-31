@@ -71,21 +71,23 @@ describe("CepikHttpClient", () => {
             const originalProcess = (global as any).process;
             (global as any).process = undefined;
 
-            const browserClient = new CepikHttpClient();
+            try {
+                const browserClient = new CepikHttpClient();
 
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                status: 200,
-                headers: new Map([["content-type", "application/json"]]),
-                json: jest.fn().mockResolvedValueOnce({ result: "success" }),
-            } as any);
+                mockFetch.mockResolvedValueOnce({
+                    ok: true,
+                    status: 200,
+                    headers: new Map([["content-type", "application/json"]]),
+                    json: jest.fn().mockResolvedValueOnce({ result: "success" }),
+                } as any);
 
-            const result = await browserClient.get("https://example.com/test");
+                const result = await browserClient.get("https://example.com/test");
 
-            expect(result).toEqual({ result: "success" });
-            expect(mockFetch).toHaveBeenCalled();
-
-            (global as any).process = originalProcess;
+                expect(result).toEqual({ result: "success" });
+                expect(mockFetch).toHaveBeenCalled();
+            } finally {
+                (global as any).process = originalProcess;
+            }
         });
     });
 
@@ -447,6 +449,36 @@ describe("CepikHttpClient", () => {
                 "Accept-Encoding": "gzip, deflate, br",
                 Connection: "keep-alive",
             });
+        });
+
+        it("Should include rateLimitingRemaining from x-rate-limit-remaining header", async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Map([
+                    ["content-type", "application/json"],
+                    ["x-rate-limit-remaining", "42"],
+                ]),
+                json: jest.fn().mockResolvedValueOnce({ data: "test" }),
+            } as any);
+
+            const result = await client.get("https://example.com/api") as any;
+
+            expect(result.rateLimitingRemaining).toBe(42);
+            expect(result.data).toBe("test");
+        });
+
+        it("Should set rateLimitingRemaining to undefined when header is absent", async () => {
+            mockFetch.mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: new Map([["content-type", "application/json"]]),
+                json: jest.fn().mockResolvedValueOnce({ data: "test" }),
+            } as any);
+
+            const result = await client.get("https://example.com/api") as any;
+
+            expect(result.rateLimitingRemaining).toBeUndefined();
         });
     });
 });
