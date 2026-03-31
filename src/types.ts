@@ -9,18 +9,6 @@ export type BasicSearchParams = {
     page?: number,
 };
 
-export interface AttachQueryParams<T extends string = any> {
-    limit?: number,
-    fromDate?: Date | string,
-    toDate?: Date | string,
-    dateType?: 0 | 1,
-    isRegistered?: boolean,
-    showAllFields?: boolean,
-    fields?: T[],
-    page?: number,
-    sort?: T[],
-};
-
 export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
     ? BasicSearchParams & {
         voivodeship: VoivodeshipEnum,
@@ -240,7 +228,7 @@ export type GetVehicleDataResponse = {
 };
 
 export type GetSpecifiedVehicleDataResponse = {
-    data: GetSpecifiedVehicleDataResponseData[],
+    data: GetSpecifiedVehicleDataResponseData,
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
@@ -252,7 +240,7 @@ export type GetFilesDataParams<T extends string | never> = [T] extends [never]
         fileId?: T,
     };
 
-export type GetFilesDataErrorResponse = {
+export type ErrorResponse = {
     id: string,
     "errorr-result": string,
     "errorr-reason": string,
@@ -261,35 +249,112 @@ export type GetFilesDataErrorResponse = {
     "error-code": string
 };
 
+export type GetFilesDataResponseAttributes = {
+    "url-do-pliku": string,
+    "url-do-metadanych-pliku": string,
+    "opis-zawartosci": string,
+    "opis-formatu-pliku": string,
+    "typ-zasobu-bedacego-zawartoscia": string,
+    "data-utworzenia-pliku": string
+};
+
+export type GetFilesDataResponseData = {
+    attributes: GetFilesDataResponseAttributes,
+    id: string,
+    links: {
+        self: string
+    },
+    type: string
+};
+
 export type GetFilesDataResponse = {
-    data: {}[],
+    data: GetFilesDataResponseData[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
 export type GetSpecifiedFileDataResponse = {
+    data: GetFilesDataResponseData,
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetDrivingLicenceDataParams<T extends string | never> = BasicSearchParams & {
+    drivingLicenceId?: string,
+    temp?: T
+};
+
+export type GetDrivingLicencesResponse = {
     data: {}[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-
-export type GetDrivingLicenceDataParams = BasicSearchParams & {
-    drivingLicenceId?: string,
+export type GetSpecifiedDrivingLicenceResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
 };
 
-export type GetPermissionDataParams = BasicSearchParams & {
+export type GetPermissionDataParams<T extends string | never> = BasicSearchParams & {
     permissionId?: string,
+    temp?: T
 };
 
-export type GetDictionariesDataParams = BasicSearchParams & {
+export type GetPermissionsResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedPermissionResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetDictionariesDataParams<T extends string | never> = BasicSearchParams & {
     dictionary: DictionariesEnum,
+    temp?: T
 };
 
-export type GetStatisticsParams = BasicSearchParams & {
+export type GetDictionariesResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedDictionaryResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetStatisticsParams<T extends string | never> = BasicSearchParams & {
     subject: StatisticsSubjectEnum,
+    temp?: T
+};
+
+export type GetStatisticsResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedStatisticResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
 };
 
 export type ColorCode = `RED` | `YELLOW` | `GREEN` | `DEFAULT` | `MAGENTA`;

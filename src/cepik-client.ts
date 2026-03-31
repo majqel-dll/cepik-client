@@ -1,12 +1,13 @@
-import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import {
+    GetSpecifiedDrivingLicenceResponse, GetPermissionsResponse, GetSpecifiedPermissionResponse,
+    GetDictionariesResponse, GetSpecifiedDictionaryResponse, GetSpecifiedStatisticResponse,
+    GetSpecifiedFileDataResponse, GetDrivingLicencesResponse, GetStatisticsResponse,
     GetPermissionDataParams, GetSpecifiedVehicleDataResponse, GetStatisticsParams,
     GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
-    GetVehicleDataParams, GetVehicleDataResponse,
-    GetFilesDataResponse,
-    GetSpecifiedFileDataResponse,
-    AttachQueryParams
+    GetVehicleDataParams, GetVehicleDataResponse, GetFilesDataResponse,
+    ErrorResponse,
 } from "./types.js";
+import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikHttpClient as HttpClient } from "./cepik-http-client.js";
 import { CepikApiLogger as Logger } from "./cepik-api-logger.js";
 
@@ -59,7 +60,7 @@ export class CEPIKApiClient {
     };
 
     private attachQueryParams(
-        params: AttachQueryParams = {}
+        params: Record<string, unknown> = {}
     ): string {
         let queryParams = ``;
         const {
@@ -68,7 +69,7 @@ export class CEPIKApiClient {
         } = params;
 
         if (toDate) {
-            queryParams += `&data-do=${this.formDate(toDate)}`;
+            queryParams += `&data-do=${this.formDate((toDate as (string | Date)))}`;
         };
 
         if (limit && limit !== 0 && !Number.isNaN(+limit)) {
@@ -128,7 +129,6 @@ export class CEPIKApiClient {
         };
 
         endpoint += this.attachQueryParams(params);
-
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
@@ -156,105 +156,153 @@ export class CEPIKApiClient {
             ? AddressResolver.getEndpointForVehicle(params?.fileId)
             : AddressResolver.vehiclesEndpoint;
 
+        endpoint += this.attachQueryParams(params);
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get(endpoint);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetFilesDataResponse
+            : GetSpecifiedFileDataResponse>(endpoint);
 
         if (response.meta && this.debug) {
             this.displayMetadata(response.meta, startTime);
         };
 
-        return;
+        return response;
     };
 
-    public async getDrivingLicencesData(
-        params: GetDrivingLicenceDataParams
-    ): Promise<unknown> {
+    public async getDrivingLicencesData<T extends string | never = never>(
+        params: GetDrivingLicenceDataParams<T>
+    ): Promise<[T] extends [never]
+        ? GetDrivingLicencesResponse
+        : GetSpecifiedDrivingLicenceResponse
+    > {
 
         const startTime = Date.now();
         let endpoint = 'drivingLicenceId' in params
             ? AddressResolver.getEndpointForVehicle(params?.drivingLicenceId)
             : AddressResolver.vehiclesEndpoint;
 
+        endpoint += this.attachQueryParams(params);
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get(endpoint);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetDrivingLicencesResponse | ErrorResponse
+            : GetSpecifiedDrivingLicenceResponse | ErrorResponse>(endpoint);
+
+        if ("error-code" in response) {
+            throw response;
+        };
 
         if (response.meta && this.debug) {
             this.displayMetadata(response.meta, startTime);
         };
 
-        return;
+        return response as [T] extends [never]
+            ? GetDrivingLicencesResponse
+            : GetSpecifiedDrivingLicenceResponse;
     };
 
-    public async getPermissionsData(
-        params: GetPermissionDataParams
-    ): Promise<unknown> {
+    public async getPermissionsData<T extends string | never = never>(
+        params: GetPermissionDataParams<T>
+    ): Promise<[T] extends [never]
+        ? GetPermissionsResponse
+        : GetSpecifiedPermissionResponse> {
 
         const startTime = Date.now();
         let endpoint = 'permissionId' in params
             ? AddressResolver.getEndpointForVehicle(params?.permissionId)
             : AddressResolver.vehiclesEndpoint;
 
+        endpoint += this.attachQueryParams(params);
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get(endpoint);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetPermissionsResponse | ErrorResponse
+            : GetSpecifiedPermissionResponse | ErrorResponse>(endpoint);
+
+        if ("error-code" in response) {
+            throw response;
+        };
 
         if (response.meta && this.debug) {
             this.displayMetadata(response.meta, startTime);
         };
 
-        return;
+        return response as [T] extends [never]
+            ? GetPermissionsResponse
+            : GetSpecifiedPermissionResponse;
     };
 
-    public async getDictionariesData(
-        params: GetDictionariesDataParams
-    ): Promise<unknown> {
+    public async getDictionariesData<T extends string | never = never>(
+        params: GetDictionariesDataParams<T>
+    ): Promise<[T] extends [never]
+        ? GetDictionariesResponse
+        : GetSpecifiedDictionaryResponse> {
 
         const startTime = Date.now();
         let endpoint = 'dictionary' in params
             ? AddressResolver.getEndpointForVehicle(params?.dictionary)
             : AddressResolver.vehiclesEndpoint;
 
+        endpoint += this.attachQueryParams(params);
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get(endpoint);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetDictionariesResponse | ErrorResponse
+            : GetSpecifiedDictionaryResponse | ErrorResponse>(endpoint);
+
+        if ("error-code" in response) {
+            throw response;
+        };
 
         if (response.meta && this.debug) {
             this.displayMetadata(response.meta, startTime);
         };
 
-        return;
+        return response as [T] extends [never]
+            ? GetDictionariesResponse
+            : GetSpecifiedDictionaryResponse;
     };
 
-    public async getStatistics(
-        params: GetStatisticsParams
-    ): Promise<unknown> {
+    public async getStatistics<T extends string | never = never>(
+        params: GetStatisticsParams<T>
+    ): Promise<[T] extends [never]
+        ? GetStatisticsResponse
+        : GetSpecifiedStatisticResponse> {
 
         const startTime = Date.now();
         let endpoint = 'subject' in params
             ? AddressResolver.getStatisticsEndpointFor(params?.subject)
             : AddressResolver.statisticsEndpoint;
 
+        endpoint += this.attachQueryParams(params);
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get(endpoint);
+        const response = await this.httpClient.get<[T] extends [never]
+            ? GetStatisticsResponse | ErrorResponse
+            : GetSpecifiedStatisticResponse | ErrorResponse>(endpoint);
+
+        if ("error-code" in response) {
+            throw response;
+        };
 
         if (response.meta && this.debug) {
             this.displayMetadata(response.meta, startTime);
         };
 
-        return;
+        return response as [T] extends [never]
+            ? GetStatisticsResponse
+            : GetSpecifiedStatisticResponse;
     };
 
 }
