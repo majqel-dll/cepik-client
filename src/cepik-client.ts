@@ -176,8 +176,12 @@ export class CEPIKApiClient {
                 throw new Error(`The 'toDate' field can't be before 'fromDate'`);
             };
 
-            const { fromDate: _skip, voivodeship: _skipVoiv, ...vehicleQueryParams } = params as any;
-            endpoint += this.attachQueryParams({ ...vehicleQueryParams, toDate }, true);
+            const keysAlreadyInUrl = ['fromDate', 'voivodeship'];
+            const vehicleQueryParams = Object.fromEntries(
+                Object.entries(params as Record<string, unknown>)
+                    .filter(([key]) => !keysAlreadyInUrl.includes(key))
+            );
+            endpoint += this.attachQueryParams(vehicleQueryParams, true);
 
         } else {
             endpoint += this.attachQueryParams(params, false);
@@ -289,8 +293,7 @@ export class CEPIKApiClient {
             endpoint = AddressResolver.getVehicleStatisticsEndpoint(statisticsDate);
         }
 
-        const { statisticsDate: _skip, voivodeship: _skipVoiv, ...queryParams } = params as any;
-        endpoint += this.attachQueryParams(queryParams, false);
+        endpoint += this.attachQueryParams(params, false);
 
         return await this.request<[T] extends [never]
             ? GetVehicleStatisticsResponse
@@ -310,14 +313,20 @@ export class CEPIKApiClient {
                 this.formDate(params.statisticsDate),
                 params.fileId
             );
-            const { statisticsDate: _s, fileId: _f, fromDate: _fd, toDate: _td, ...queryParams } = params as any;
-            endpoint += this.attachQueryParams(queryParams, false);
+            const keysUsedInPath = ['statisticsDate', 'fileId', 'fromDate', 'toDate'];
+            const queryParamsWithoutPathKeys = Object.fromEntries(
+                Object.entries(params as Record<string, unknown>).filter(([key]) => !keysUsedInPath.includes(key))
+            );
+            endpoint += this.attachQueryParams(queryParamsWithoutPathKeys, false);
 
         } else if (params?.statisticsDate) {
 
             endpoint = AddressResolver.getFileStatisticsEndpoint(this.formDate(params.statisticsDate));
-            const { statisticsDate: _s, fromDate: _fd, toDate: _td, ...queryParams } = params as any;
-            endpoint += this.attachQueryParams(queryParams, false);
+            const keysUsedInPath = ['statisticsDate', 'fromDate', 'toDate'];
+            const queryParamsWithoutPathKeys = Object.fromEntries(
+                Object.entries(params as Record<string, unknown>).filter(([key]) => !keysUsedInPath.includes(key))
+            );
+            endpoint += this.attachQueryParams(queryParamsWithoutPathKeys, false);
 
         } else {
 
@@ -348,8 +357,7 @@ export class CEPIKApiClient {
             endpoint = AddressResolver.getActivityStatisticsEndpoint(statisticsDate);
         }
 
-        const { statisticsDate: _skip, id: _skipId, ...queryParams } = params as any;
-        endpoint += this.attachQueryParams(queryParams, false);
+        endpoint += this.attachQueryParams(params, false);
 
         return await this.request<[T] extends [never]
             ? GetActivityStatisticsResponse
@@ -363,9 +371,8 @@ export class CEPIKApiClient {
         const startTime = Date.now();
         const statisticsDate = this.formDate(params.statisticsDate);
         const endpoint = AddressResolver.getDictionaryStatisticsEndpoint(statisticsDate);
-        const { statisticsDate: _skip, ...queryParams } = params as any;
         return await this.request<GetDictionaryStatisticsResponse>(
-            endpoint + this.attachQueryParams(queryParams, false),
+            endpoint + this.attachQueryParams(params, false),
             startTime
         );
     };

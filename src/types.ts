@@ -9,7 +9,7 @@ export type BasicSearchParams = {
     page?: number,
 };
 
-export interface AttachQueryParams<T extends string = any> {
+export interface AttachQueryParams<T extends string = string> {
     limit?: number;
     fromDate?: Date | string;
     toDate?: Date | string;
