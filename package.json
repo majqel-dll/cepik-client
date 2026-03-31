@@ -1,6 +1,6 @@
 {
   "name": "cepik-api-client",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "A modern TypeScript/JavaScript library for retrieving data from the public API of the Polish National Vehicles Database (CEPIK).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -35,10 +35,16 @@ export class CepikApiLogger {
         try {
             if (message === null || message === undefined) {
                 return String(message);
-            }
+            };
+            
+            if (message instanceof Error) {
+                return message.stack || message.message || String(message);
+            };
+            
             if (typeof message === "object") {
                 return JSON.stringify(message, null, 2);
-            }
+            };
+            
             return String(message);
         } catch {
             return "[unserializable message]";
