@@ -5,7 +5,10 @@ import {
     GetPermissionDataParams, GetSpecifiedVehicleDataResponse, GetStatisticsParams,
     GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
     GetVehicleDataParams, GetVehicleDataResponse, GetFilesDataResponse,
+    AttachQueryParams,
     ErrorResponse,
+    ApiVersions,
+    VersionResponse,
 } from "./types.js";
 import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikHttpClient as HttpClient } from "./cepik-http-client.js";
@@ -28,19 +31,13 @@ export class CEPIKApiClient {
     private formDate(date: string | Date): string {
         const dateObject = new Date(date);
 
-        if (!dateObject) {
+        if (Number.isNaN(dateObject.getTime())) {
             throw new Error(`Incorrect date format.`);
-        };
+        }
 
         const year = dateObject.getFullYear();
-
-        const month = (dateObject.getMonth() + 1) >= 10
-            ? (dateObject.getMonth() + 1)
-            : `0${(dateObject.getMonth() + 1)}`;
-
-        const day = dateObject.getDate() >= 10
-            ? dateObject.getDate()
-            : `0${dateObject.getDate()}`;
+        const month = String(dateObject.getMonth() + 1).padStart(2, "0");
+        const day = String(dateObject.getDate()).padStart(2, "0");
 
         return `${year}${month}${day}`;
     };
@@ -49,6 +46,32 @@ export class CEPIKApiClient {
         endpoint: string
     ): void {
         this.logger.log(`Generated endpoint and query params: ${endpoint}`);
+    };
+
+    private isErrorResponse(response: unknown): response is ErrorResponse {
+        return typeof response === "object" && response !== null && "error-code" in (response as ErrorResponse);
+    }
+
+    private async request<T>(endpoint: string, startTime: number): Promise<T> {
+
+        if (this.debug) {
+            this.displayEndpointMessage(endpoint);
+        };
+
+        const response = await this.httpClient.get<T | ErrorResponse>(endpoint);
+
+        if (this.isErrorResponse(response)) {
+            throw response;
+        };
+
+        if (this.debug && typeof response === "object" && response !== null && "meta" in response) {
+            const meta = (response as { meta?: Record<string, string | number> }).meta;
+            if (meta) {
+                this.displayMetadata(meta, startTime);
+            };
+        };
+
+        return response as T;
     };
 
     private displayMetadata(
@@ -60,50 +83,67 @@ export class CEPIKApiClient {
     };
 
     private attachQueryParams(
-        params: Record<string, unknown> = {}
+        params: unknown = {},
+        hasExistingQuery: boolean = false
     ): string {
-        let queryParams = ``;
+        const queryPairs: string[] = [];
         const {
             limit, toDate, dateType, isRegistered,
-            page, sort, showAllFields,
-        } = params;
+            page, sort, showAllFields, fields,
+        } = params as Partial<AttachQueryParams>;
 
         if (toDate) {
-            queryParams += `&data-do=${this.formDate((toDate as (string | Date)))}`;
-        };
+            queryPairs.push(`data-do=${this.formDate(toDate)}`);
+        }
 
-        if (limit && limit !== 0 && !Number.isNaN(+limit)) {
-            queryParams += `&limit=${limit}`;
-        };
+        if (limit !== undefined && limit !== null) {
+            const limitNum = Number(limit);
+            if (Number.isNaN(limitNum) || limitNum < 1 || limitNum > 500) {
+                throw new Error(`limit must be an integer between 1 and 500.`);
+            }
+            queryPairs.push(`limit=${limitNum}`);
+        }
 
-        if (dateType && !Number.isNaN(+dateType)) {
-            queryParams += `&typ-daty=${dateType}`
-        };
+        if (dateType !== undefined && dateType !== null) {
+            const dateTypeNum = Number(dateType);
+            if (Number.isNaN(dateTypeNum) || (dateTypeNum !== 0 && dateTypeNum !== 1)) {
+                throw new Error(`dateType must be 0 or 1.`);
+            }
+            queryPairs.push(`typ-daty=${dateTypeNum}`);
+        }
 
         if (isRegistered !== undefined && isRegistered !== null) {
-            queryParams += `&tylko-zarejestrowane=${isRegistered}`
-        };
+            queryPairs.push(`tylko-zarejestrowane=${isRegistered}`);
+        }
 
         if (showAllFields !== undefined && showAllFields !== null) {
-            queryParams += `&tylko-zarejestrowane=${showAllFields}`
-        };
+            queryPairs.push(`pokaz-wszystkie-pola=${showAllFields}`);
+        }
 
-        if (page && page !== 0 && !Number.isNaN(+page)) {
-            queryParams += `&page=${page}`;
-        };
+        if (page !== undefined && page !== null) {
+            const pageNum = Number(page);
+            if (Number.isNaN(pageNum) || pageNum < 1) {
+                throw new Error(`page must be a positive integer.`);
+            }
+            queryPairs.push(`page=${pageNum}`);
+        }
 
-        if (sort && Array.isArray(sort)) {
-            queryParams += `&sort=${sort.join(`,`)}`
-        };
+        if (sort && Array.isArray(sort) && sort.length > 0) {
+            queryPairs.push(`sort=${sort.join(`,`)}`);
+        }
 
-        if (params?.fields && Array.isArray(params.fields)) {
-            queryParams += `&fields=${params.fields.join(`,`)}`
-        };
+        if (fields && Array.isArray(fields) && fields.length > 0) {
+            queryPairs.push(`fields=${fields.join(`,`)}`);
+        }
 
-        return queryParams;
-    };
+        if (!queryPairs.length) {
+            return "";
+        }
 
-    public async getVehiclesData<T extends string | never = never>(
+        return `${hasExistingQuery ? `&` : `?`}${queryPairs.join(`&`)}`;
+    }
+
+    public async getVehicles<T extends string | never = never>(
         params: GetVehicleDataParams<T>
     ): Promise<[T] extends [never]
         ? GetVehicleDataResponse
@@ -128,23 +168,13 @@ export class CEPIKApiClient {
 
         };
 
-        endpoint += this.attachQueryParams(params);
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
-
-        const response = await this.httpClient.get<[T] extends [never]
+        endpoint += this.attachQueryParams(params, !(`vehicleId` in params));
+        return await this.request<[T] extends [never]
             ? GetVehicleDataResponse
-            : GetSpecifiedVehicleDataResponse>(endpoint);
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response;
+            : GetSpecifiedVehicleDataResponse>(endpoint, startTime);
     };
 
-    public async getFilesData<T extends string | never = never>(
+    public async getFiles<T extends string | never = never>(
         params: GetFilesDataParams<T>
     ): Promise<[T] extends [never]
         ? GetFilesDataResponse
@@ -153,26 +183,17 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'fileId' in params
-            ? AddressResolver.getEndpointForVehicle(params?.fileId)
-            : AddressResolver.vehiclesEndpoint;
+            ? AddressResolver.getEndpointForFile(params?.fileId)
+            : AddressResolver.filesEndpoint;
 
-        endpoint += this.attachQueryParams(params);
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
+        endpoint += this.attachQueryParams(params, false);
 
-        const response = await this.httpClient.get<[T] extends [never]
+        return await this.request<[T] extends [never]
             ? GetFilesDataResponse
-            : GetSpecifiedFileDataResponse>(endpoint);
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response;
+            : GetSpecifiedFileDataResponse>(endpoint, startTime);
     };
 
-    public async getDrivingLicencesData<T extends string | never = never>(
+    public async getDrivingLicences<T extends string | never = never>(
         params: GetDrivingLicenceDataParams<T>
     ): Promise<[T] extends [never]
         ? GetDrivingLicencesResponse
@@ -181,32 +202,17 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'drivingLicenceId' in params
-            ? AddressResolver.getEndpointForVehicle(params?.drivingLicenceId)
-            : AddressResolver.vehiclesEndpoint;
+            ? AddressResolver.getEndpointForDrivingLicence(params?.drivingLicenceId)
+            : AddressResolver.drivingLicencesEndpoint;
 
-        endpoint += this.attachQueryParams(params);
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
+        endpoint += this.attachQueryParams(params, false);
 
-        const response = await this.httpClient.get<[T] extends [never]
-            ? GetDrivingLicencesResponse | ErrorResponse
-            : GetSpecifiedDrivingLicenceResponse | ErrorResponse>(endpoint);
-
-        if ("error-code" in response) {
-            throw response;
-        };
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response as [T] extends [never]
+        return await this.request<[T] extends [never]
             ? GetDrivingLicencesResponse
-            : GetSpecifiedDrivingLicenceResponse;
+            : GetSpecifiedDrivingLicenceResponse>(endpoint, startTime);
     };
 
-    public async getPermissionsData<T extends string | never = never>(
+    public async getPermissions<T extends string | never = never>(
         params: GetPermissionDataParams<T>
     ): Promise<[T] extends [never]
         ? GetPermissionsResponse
@@ -214,32 +220,17 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'permissionId' in params
-            ? AddressResolver.getEndpointForVehicle(params?.permissionId)
-            : AddressResolver.vehiclesEndpoint;
+            ? AddressResolver.getEndpointForPermission(params?.permissionId)
+            : AddressResolver.permissionsEndpoint;
 
-        endpoint += this.attachQueryParams(params);
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
+        endpoint += this.attachQueryParams(params, false);
 
-        const response = await this.httpClient.get<[T] extends [never]
-            ? GetPermissionsResponse | ErrorResponse
-            : GetSpecifiedPermissionResponse | ErrorResponse>(endpoint);
-
-        if ("error-code" in response) {
-            throw response;
-        };
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response as [T] extends [never]
+        return await this.request<[T] extends [never]
             ? GetPermissionsResponse
-            : GetSpecifiedPermissionResponse;
+            : GetSpecifiedPermissionResponse>(endpoint, startTime);
     };
 
-    public async getDictionariesData<T extends string | never = never>(
+    public async getDictionaries<T extends string | never = never>(
         params: GetDictionariesDataParams<T>
     ): Promise<[T] extends [never]
         ? GetDictionariesResponse
@@ -247,29 +238,13 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'dictionary' in params
-            ? AddressResolver.getEndpointForVehicle(params?.dictionary)
-            : AddressResolver.vehiclesEndpoint;
+            ? AddressResolver.getEndpointForDictionary(params?.dictionary)
+            : AddressResolver.dictionariesEndpoint;
 
-        endpoint += this.attachQueryParams(params);
-        if (this.debug) {
-            this.displayEndpointMessage(endpoint);
-        };
-
-        const response = await this.httpClient.get<[T] extends [never]
-            ? GetDictionariesResponse | ErrorResponse
-            : GetSpecifiedDictionaryResponse | ErrorResponse>(endpoint);
-
-        if ("error-code" in response) {
-            throw response;
-        };
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response as [T] extends [never]
+        endpoint += this.attachQueryParams(params, false);
+        return await this.request<[T] extends [never]
             ? GetDictionariesResponse
-            : GetSpecifiedDictionaryResponse;
+            : GetSpecifiedDictionaryResponse>(endpoint, startTime);
     };
 
     public async getStatistics<T extends string | never = never>(
@@ -283,26 +258,29 @@ export class CEPIKApiClient {
             ? AddressResolver.getStatisticsEndpointFor(params?.subject)
             : AddressResolver.statisticsEndpoint;
 
-        endpoint += this.attachQueryParams(params);
+        endpoint += this.attachQueryParams(params, false);
+
+        return await this.request<[T] extends [never]
+            ? GetStatisticsResponse
+            : GetSpecifiedStatisticResponse>(endpoint, startTime);
+    };
+
+    public async getVersion(
+        version?: ApiVersions
+    ): Promise<VersionResponse> {
+
+        let endpoint: string = ((version: ApiVersions) => {
+            switch (version) {
+                case "v1": return AddressResolver.v1VersionEndpoint;
+                default: return AddressResolver.versionEndpoint;
+            }
+        })(version);
+
         if (this.debug) {
             this.displayEndpointMessage(endpoint);
         };
 
-        const response = await this.httpClient.get<[T] extends [never]
-            ? GetStatisticsResponse | ErrorResponse
-            : GetSpecifiedStatisticResponse | ErrorResponse>(endpoint);
-
-        if ("error-code" in response) {
-            throw response;
-        };
-
-        if (response.meta && this.debug) {
-            this.displayMetadata(response.meta, startTime);
-        };
-
-        return response as [T] extends [never]
-            ? GetStatisticsResponse
-            : GetSpecifiedStatisticResponse;
+        return await this.request<VersionResponse>(endpoint, Date.now());
     };
 
 }

@@ -9,6 +9,18 @@ export type BasicSearchParams = {
     page?: number,
 };
 
+export interface AttachQueryParams<T extends string = any> {
+    limit?: number;
+    fromDate?: Date | string;
+    toDate?: Date | string;
+    dateType?: 0 | 1;
+    isRegistered?: boolean;
+    showAllFields?: boolean;
+    fields?: T[];
+    page?: number;
+    sort?: T[];
+}
+
 export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
     ? BasicSearchParams & {
         voivodeship: VoivodeshipEnum,
@@ -379,3 +391,13 @@ export interface ClientRequest {
 export interface HttpsModule {
     get(url: string, options: HttpsRequestOptions, callback: (res: IncomingMessage) => void): ClientRequest;
 }
+
+export type ApiVersions = `v1`
+
+export type VersionResponse = {
+    dateMod: string,
+    deprecated: string,
+    major: string,
+    minor: string,
+    patch: string,
+};
