@@ -1,14 +1,14 @@
 import {
     GetSpecifiedDrivingLicenceResponse, GetPermissionsResponse, GetSpecifiedPermissionResponse,
-    GetDictionariesResponse, GetSpecifiedDictionaryResponse, GetSpecifiedStatisticResponse,
-    GetSpecifiedFileDataResponse, GetDrivingLicencesResponse, GetStatisticsResponse,
-    GetPermissionDataParams, GetSpecifiedVehicleDataResponse, GetStatisticsParams,
-    GetDictionariesDataParams, GetDrivingLicenceDataParams, GetFilesDataParams,
-    GetVehicleDataParams, GetVehicleDataResponse, GetFilesDataResponse,
-    AttachQueryParams,
-    ErrorResponse,
-    ApiVersions,
-    VersionResponse,
+    GetDictionariesResponse, GetSpecifiedDictionaryResponse, GetSpecifiedFileDataResponse,
+    GetDrivingLicencesResponse, GetStatisticsResponse, GetPermissionDataParams, ErrorResponse,
+    GetSpecifiedVehicleDataResponse, GetStatisticsParams, GetDictionariesDataParams, ApiVersions,
+    GetDrivingLicenceDataParams, GetFilesDataParams, GetVehicleDataParams, GetVehicleDataResponse,
+    GetFilesDataResponse, AttachQueryParams, VersionResponse, GetVehicleStatisticsParams,
+    GetVehicleStatisticsResponse, GetSpecifiedVehicleStatisticsResponse, GetFileStatisticsParams,
+    GetFileStatisticsResponse, GetSpecifiedFileStatisticsResponse, GetActivityStatisticsParams,
+    GetActivityStatisticsResponse, GetSpecifiedActivityStatisticsResponse, GetDictionaryStatisticsParams,
+    GetDictionaryStatisticsResponse,
 } from "./types.js";
 import { CepikAddressResolver as AddressResolver } from "./cepik-address-resolver.js";
 import { CepikHttpClient as HttpClient } from "./cepik-http-client.js";
@@ -88,12 +88,22 @@ export class CEPIKApiClient {
     ): string {
         const queryPairs: string[] = [];
         const {
-            limit, toDate, dateType, isRegistered,
-            page, sort, showAllFields, fields,
+            limit, fromDate, toDate, dateType, isRegistered,
+            page, sort, showAllFields, fields, filter,
         } = params as Partial<AttachQueryParams>;
+
+        if (fromDate) {
+            queryPairs.push(`data-od=${this.formDate(fromDate)}`);
+        }
 
         if (toDate) {
             queryPairs.push(`data-do=${this.formDate(toDate)}`);
+        }
+
+        if (filter && typeof filter === "object") {
+            for (const [key, value] of Object.entries(filter)) {
+                queryPairs.push(`filter[${key}]=${encodeURIComponent(String(value))}`);
+            }
         }
 
         if (limit !== undefined && limit !== null) {
@@ -166,9 +176,13 @@ export class CEPIKApiClient {
                 throw new Error(`The 'toDate' field can't be before 'fromDate'`);
             };
 
+            const { fromDate: _skip, voivodeship: _skipVoiv, ...vehicleQueryParams } = params as any;
+            endpoint += this.attachQueryParams({ ...vehicleQueryParams, toDate }, true);
+
+        } else {
+            endpoint += this.attachQueryParams(params, false);
         };
 
-        endpoint += this.attachQueryParams(params, !(`vehicleId` in params));
         return await this.request<[T] extends [never]
             ? GetVehicleDataResponse
             : GetSpecifiedVehicleDataResponse>(endpoint, startTime);
@@ -202,7 +216,7 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'drivingLicenceId' in params
-            ? AddressResolver.getEndpointForDrivingLicence(params?.drivingLicenceId)
+            ? AddressResolver.getEndpointForDrivingLicence((params as { drivingLicenceId: string }).drivingLicenceId)
             : AddressResolver.drivingLicencesEndpoint;
 
         endpoint += this.attachQueryParams(params, false);
@@ -220,7 +234,7 @@ export class CEPIKApiClient {
 
         const startTime = Date.now();
         let endpoint = 'permissionId' in params
-            ? AddressResolver.getEndpointForPermission(params?.permissionId)
+            ? AddressResolver.getEndpointForPermission((params as { permissionId: string }).permissionId)
             : AddressResolver.permissionsEndpoint;
 
         endpoint += this.attachQueryParams(params, false);
@@ -230,15 +244,15 @@ export class CEPIKApiClient {
             : GetSpecifiedPermissionResponse>(endpoint, startTime);
     };
 
-    public async getDictionaries<T extends string | never = never>(
-        params: GetDictionariesDataParams<T>
+    public async getDictionaries<T extends import('./enums.js').DictionariesEnum | never = never>(
+        params?: GetDictionariesDataParams<T>
     ): Promise<[T] extends [never]
         ? GetDictionariesResponse
         : GetSpecifiedDictionaryResponse> {
 
         const startTime = Date.now();
-        let endpoint = 'dictionary' in params
-            ? AddressResolver.getEndpointForDictionary(params?.dictionary)
+        let endpoint = params && 'dictionary' in params
+            ? AddressResolver.getEndpointForDictionary((params as { dictionary: string }).dictionary)
             : AddressResolver.dictionariesEndpoint;
 
         endpoint += this.attachQueryParams(params, false);
@@ -247,22 +261,113 @@ export class CEPIKApiClient {
             : GetSpecifiedDictionaryResponse>(endpoint, startTime);
     };
 
-    public async getStatistics<T extends string | never = never>(
-        params: GetStatisticsParams<T>
-    ): Promise<[T] extends [never]
-        ? GetStatisticsResponse
-        : GetSpecifiedStatisticResponse> {
+    public async getStatistics(
+        params?: GetStatisticsParams
+    ): Promise<GetStatisticsResponse> {
 
         const startTime = Date.now();
-        let endpoint = 'subject' in params
-            ? AddressResolver.getStatisticsEndpointFor(params?.subject)
-            : AddressResolver.statisticsEndpoint;
+        const endpoint = AddressResolver.statisticsEndpoint + this.attachQueryParams(params, false);
+        return await this.request<GetStatisticsResponse>(endpoint, startTime);
+    };
 
-        endpoint += this.attachQueryParams(params, false);
+    public async getVehicleStatistics<T extends string | never = never>(
+        params: GetVehicleStatisticsParams<T>
+    ): Promise<[T] extends [never]
+        ? GetVehicleStatisticsResponse
+        : GetSpecifiedVehicleStatisticsResponse> {
+
+        const startTime = Date.now();
+        const statisticsDate = this.formDate(params.statisticsDate);
+        let endpoint: string;
+
+        if ('voivodeship' in params) {
+            endpoint = AddressResolver.getVehicleStatisticsForVoivodeshipEndpoint(
+                statisticsDate,
+                (params as { voivodeship: string }).voivodeship
+            );
+        } else {
+            endpoint = AddressResolver.getVehicleStatisticsEndpoint(statisticsDate);
+        }
+
+        const { statisticsDate: _skip, voivodeship: _skipVoiv, ...queryParams } = params as any;
+        endpoint += this.attachQueryParams(queryParams, false);
 
         return await this.request<[T] extends [never]
-            ? GetStatisticsResponse
-            : GetSpecifiedStatisticResponse>(endpoint, startTime);
+            ? GetVehicleStatisticsResponse
+            : GetSpecifiedVehicleStatisticsResponse>(endpoint, startTime);
+    };
+
+    public async getFileStatistics(
+        params?: GetFileStatisticsParams
+    ): Promise<GetFileStatisticsResponse | GetSpecifiedFileStatisticsResponse> {
+
+        const startTime = Date.now();
+        let endpoint: string;
+
+        if (params?.statisticsDate && params?.fileId) {
+
+            endpoint = AddressResolver.getFileStatisticsForFileEndpoint(
+                this.formDate(params.statisticsDate),
+                params.fileId
+            );
+            const { statisticsDate: _s, fileId: _f, fromDate: _fd, toDate: _td, ...queryParams } = params as any;
+            endpoint += this.attachQueryParams(queryParams, false);
+
+        } else if (params?.statisticsDate) {
+
+            endpoint = AddressResolver.getFileStatisticsEndpoint(this.formDate(params.statisticsDate));
+            const { statisticsDate: _s, fromDate: _fd, toDate: _td, ...queryParams } = params as any;
+            endpoint += this.attachQueryParams(queryParams, false);
+
+        } else {
+
+            endpoint = AddressResolver.fileStatisticsEndpoint;
+            endpoint += this.attachQueryParams(params, false);
+
+        }
+
+        return await this.request<GetFileStatisticsResponse>(endpoint, startTime);
+    };
+
+    public async getActivityStatistics<T extends string | never = never>(
+        params: GetActivityStatisticsParams<T>
+    ): Promise<[T] extends [never]
+        ? GetActivityStatisticsResponse
+        : GetSpecifiedActivityStatisticsResponse> {
+
+        const startTime = Date.now();
+        const statisticsDate = this.formDate(params.statisticsDate);
+        let endpoint: string;
+
+        if ('id' in params) {
+            endpoint = AddressResolver.getActivityStatisticsHourlyEndpoint(
+                statisticsDate,
+                (params as { id: string }).id
+            );
+        } else {
+            endpoint = AddressResolver.getActivityStatisticsEndpoint(statisticsDate);
+        }
+
+        const { statisticsDate: _skip, id: _skipId, ...queryParams } = params as any;
+        endpoint += this.attachQueryParams(queryParams, false);
+
+        return await this.request<[T] extends [never]
+            ? GetActivityStatisticsResponse
+            : GetSpecifiedActivityStatisticsResponse>(endpoint, startTime);
+    };
+
+    public async getDictionaryStatistics(
+        params: GetDictionaryStatisticsParams
+    ): Promise<GetDictionaryStatisticsResponse> {
+
+        const startTime = Date.now();
+        const statisticsDate = this.formDate(params.statisticsDate);
+        const endpoint = AddressResolver.getDictionaryStatisticsEndpoint(statisticsDate);
+        const { statisticsDate: _skip, ...queryParams } = params as any;
+        return await this.request<GetDictionaryStatisticsResponse>(
+            endpoint + this.attachQueryParams(queryParams, false),
+            startTime
+        );
     };
 
     public async getVersion(

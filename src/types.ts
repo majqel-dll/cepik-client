@@ -1,4 +1,4 @@
-import { DictionariesEnum, StatisticsSubjectEnum, VoivodeshipEnum } from "./enums.js";
+import { DictionariesEnum, VoivodeshipEnum } from "./enums.js";
 
 export type CepikApiLoggerConfiguration = {
     context?: string,
@@ -19,6 +19,7 @@ export interface AttachQueryParams<T extends string = any> {
     fields?: T[];
     page?: number;
     sort?: T[];
+    filter?: Record<string, string | number>;
 }
 
 export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
@@ -249,7 +250,7 @@ export type GetSpecifiedVehicleDataResponse = {
 export type GetFilesDataParams<T extends string | never> = [T] extends [never]
     ? BasicSearchParams
     : {
-        fileId?: T,
+        fileId: T,
     };
 
 export type ErrorResponse = {
@@ -293,77 +294,282 @@ export type GetSpecifiedFileDataResponse = {
     rateLimitingRemaining: number,
 };
 
-export type GetDrivingLicenceDataParams<T extends string | never> = BasicSearchParams & {
-    drivingLicenceId?: string,
-    temp?: T
+type DrivingLicenceResponseDataAttributes = {
+    "data-statystyki": string,
+    "wojewodztwo-kod": string,
+    "wojewodztwo-nazwa": string,
+    "plec": string,
+    "wiek": number,
+    "ilosc": number,
 };
 
+type DrivingLicenceResponseData = {
+    attributes: DrivingLicenceResponseDataAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetDrivingLicenceDataParams<T extends string | never> = [T] extends [never]
+    ? BasicSearchParams & {
+        fields?: string[],
+        sort?: string[],
+        filter?: Record<string, string | number>,
+    }
+    : {
+        drivingLicenceId: T,
+        fields?: string[],
+    };
+
 export type GetDrivingLicencesResponse = {
-    data: {}[],
+    data: DrivingLicenceResponseData[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
 export type GetSpecifiedDrivingLicenceResponse = {
-    data: {}[],
+    data: DrivingLicenceResponseData,
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-export type GetPermissionDataParams<T extends string | never> = BasicSearchParams & {
-    permissionId?: string,
-    temp?: T
+type PermissionResponseDataAttributes = {
+    "data-statystyki": string,
+    "wojewodztwo-kod": string,
+    "wojewodztwo-nazwa": string,
+    "kod-uprawnienia": string,
+    "plec": string,
+    "wiek": number,
+    "ilosc": number,
 };
 
+type PermissionResponseData = {
+    attributes: PermissionResponseDataAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetPermissionDataParams<T extends string | never> = [T] extends [never]
+    ? BasicSearchParams & {
+        fields?: string[],
+        sort?: string[],
+        filter?: Record<string, string | number>,
+    }
+    : {
+        permissionId: T,
+        fields?: string[],
+    };
+
 export type GetPermissionsResponse = {
-    data: {}[],
+    data: PermissionResponseData[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
 export type GetSpecifiedPermissionResponse = {
-    data: {}[],
+    data: PermissionResponseData,
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-export type GetDictionariesDataParams<T extends string | never> = BasicSearchParams & {
-    dictionary: DictionariesEnum,
-    temp?: T
+type DictionaryListItemAttributes = {
+    "opis-slownika": string,
 };
 
+type DictionaryListItemData = {
+    attributes: DictionaryListItemAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+type DictionaryElementAttributes = {
+    "klucz-slownika": string,
+    "wartosc-slownika": string,
+    "liczba-wystapien": string,
+    "slownik-powiazany": string,
+};
+
+type DictionarySpecificAttributes = {
+    "dostepne-rekordy-slownika": DictionaryElementAttributes[],
+    "ilosc-rekordow-slownika": number,
+};
+
+type DictionarySpecificData = {
+    attributes: DictionarySpecificAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetDictionariesDataParams<T extends DictionariesEnum | never> = [T] extends [never]
+    ? BasicSearchParams
+    : {
+        dictionary: T,
+    };
+
 export type GetDictionariesResponse = {
-    data: {}[],
+    data: DictionaryListItemData[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
 export type GetSpecifiedDictionaryResponse = {
-    data: {}[],
+    data: DictionarySpecificData,
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-export type GetStatisticsParams<T extends string | never> = BasicSearchParams & {
-    subject: StatisticsSubjectEnum,
-    temp?: T
+type StatisticsAttributes = {
+    "data": string,
+    "nazwa": string,
+    "liczba-odslon": string,
+    "liczba-wizyt": string,
+};
+
+type StatisticsResponseData = {
+    attributes: StatisticsAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetStatisticsParams = BasicSearchParams & {
+    fromDate?: Date | string,
+    toDate?: Date | string,
 };
 
 export type GetStatisticsResponse = {
-    data: {}[],
+    data: StatisticsResponseData[],
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-export type GetSpecifiedStatisticResponse = {
-    data: {}[],
+type StatisticsVehicleAttributes = {
+    "data-statystyki": string,
+    "nazwa-wojewodztwa": string,
+    "ilosc-wyszukan": string,
+};
+
+type StatisticsVehicleData = {
+    attributes: StatisticsVehicleAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetVehicleStatisticsParams<T extends string | never> = [T] extends [never]
+    ? BasicSearchParams & { statisticsDate: Date | string }
+    : { statisticsDate: Date | string, voivodeship: T };
+
+export type GetVehicleStatisticsResponse = {
+    data: StatisticsVehicleData[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedVehicleStatisticsResponse = {
+    data: StatisticsVehicleData,
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+type StatisticsFilesAttributes = {
+    "data-statystyki": string,
+    "nazwa-pliku": string,
+    "opis-pliku": string,
+    "liczba-pobran": number,
+};
+
+type StatisticsFilesData = {
+    attributes: StatisticsFilesAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetFileStatisticsParams = BasicSearchParams & {
+    fromDate?: Date | string,
+    toDate?: Date | string,
+    statisticsDate?: Date | string,
+    fileId?: string,
+};
+
+export type GetFileStatisticsResponse = {
+    data: StatisticsFilesData[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedFileStatisticsResponse = {
+    data: StatisticsFilesData,
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+type StatisticsActivityDailyAttributes = {
+    "dzien-tygodnia": string,
+    "data-statystyki": string,
+    "laczna-ilosc-wyswietlen": string,
+};
+
+type StatisticsActivityDailyData = {
+    attributes: StatisticsActivityDailyAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+type StatisticsActivityHourlyAttributes = {
+    "data-statystyki": string,
+    "godzina-od": string,
+    "godzina-do": string,
+    "laczna-ilosc-wyswietlen": string,
+};
+
+type StatisticsActivityHourlyData = {
+    attributes: StatisticsActivityHourlyAttributes,
+    id: string,
+    links: { self: string },
+    type: string,
+};
+
+export type GetActivityStatisticsParams<T extends string | never> = [T] extends [never]
+    ? BasicSearchParams & { statisticsDate: Date | string }
+    : { statisticsDate: Date | string, id: T };
+
+export type GetActivityStatisticsResponse = {
+    data: StatisticsActivityDailyData[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedActivityStatisticsResponse = {
+    data: StatisticsActivityHourlyData,
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetDictionaryStatisticsParams = BasicSearchParams & {
+    statisticsDate: Date | string,
+};
+
+export type GetDictionaryStatisticsResponse = {
+    data: DictionarySpecificData,
     links: ResponseLinks,
     meta: ResponseMetadata,
     rateLimitingRemaining: number,

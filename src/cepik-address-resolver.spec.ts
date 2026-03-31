@@ -1,5 +1,4 @@
 import { CepikAddressResolver } from "./cepik-address-resolver.js";
-import { StatisticsSubjectEnum } from "./enums.js";
 
 describe("CepikAddressResolver", () => {
     describe("constructor", () => {
@@ -268,42 +267,64 @@ describe("CepikAddressResolver", () => {
         });
     });
 
-    describe("getStatisticsEndpointFor", () => {
-        it("Should return endpoint for VEHICLES statistics", () => {
-            const endpoint = CepikAddressResolver.getStatisticsEndpointFor(StatisticsSubjectEnum.VEHICLES);
-            expect(endpoint).toBe("https://api.cepik.gov.pl/pojazdy");
+    describe("getVehicleStatisticsEndpoint", () => {
+        it("Should return vehicle statistics endpoint for a date", () => {
+            const endpoint = CepikAddressResolver.getVehicleStatisticsEndpoint("20240101");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/pojazdy/20240101");
         });
 
-        it("Should return endpoint for FILES statistics", () => {
-            const endpoint = CepikAddressResolver.getStatisticsEndpointFor(StatisticsSubjectEnum.FILES);
-            expect(endpoint).toBe("https://api.cepik.gov.pl/pliki");
+        it("Should include statistics and vehicles path", () => {
+            const endpoint = CepikAddressResolver.getVehicleStatisticsEndpoint("20240101");
+            expect(endpoint).toContain("/statystyki/pojazdy/");
         });
+    });
 
-        it("Should return endpoint for ACTIVITY statistics", () => {
-            const endpoint = CepikAddressResolver.getStatisticsEndpointFor(StatisticsSubjectEnum.ACTIVITY);
-            expect(endpoint).toBe("https://api.cepik.gov.pl/aktywnosc");
+    describe("getVehicleStatisticsForVoivodeshipEndpoint", () => {
+        it("Should return endpoint for a specific voivodeship", () => {
+            const endpoint = CepikAddressResolver.getVehicleStatisticsForVoivodeshipEndpoint("20240101", "14");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/pojazdy/20240101/14");
         });
+    });
 
-        it("Should return endpoint for DICTIONARIES statistics", () => {
-            const endpoint = CepikAddressResolver.getStatisticsEndpointFor(StatisticsSubjectEnum.DICTIONARIES);
-            expect(endpoint).toBe("https://api.cepik.gov.pl/slowniki");
+    describe("fileStatisticsEndpoint", () => {
+        it("Should return file statistics endpoint", () => {
+            const endpoint = CepikAddressResolver.fileStatisticsEndpoint;
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/pliki");
         });
+    });
 
-        it("Should include host for all subjects", () => {
-            const subjects = Object.values(StatisticsSubjectEnum);
-            const host = (CepikAddressResolver as any).host;
-            subjects.forEach(subject => {
-                const endpoint = CepikAddressResolver.getStatisticsEndpointFor(subject);
-                expect(endpoint).toContain(host);
-            });
+    describe("getFileStatisticsEndpoint", () => {
+        it("Should return file statistics endpoint for a date", () => {
+            const endpoint = CepikAddressResolver.getFileStatisticsEndpoint("20240101");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/pliki/20240101");
         });
+    });
 
-        it("Should return different endpoints for different subjects", () => {
-            const points = Object.values(StatisticsSubjectEnum).map(
-                subject => CepikAddressResolver.getStatisticsEndpointFor(subject)
-            );
-            const uniquePoints = new Set(points);
-            expect(uniquePoints.size).toBe(points.length);
+    describe("getFileStatisticsForFileEndpoint", () => {
+        it("Should return endpoint for a specific file on a date", () => {
+            const endpoint = CepikAddressResolver.getFileStatisticsForFileEndpoint("20240101", "abc123");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/pliki/20240101/abc123");
+        });
+    });
+
+    describe("getActivityStatisticsEndpoint", () => {
+        it("Should return activity statistics endpoint for a date", () => {
+            const endpoint = CepikAddressResolver.getActivityStatisticsEndpoint("20240101");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/aktywnosc/20240101");
+        });
+    });
+
+    describe("getActivityStatisticsHourlyEndpoint", () => {
+        it("Should return hourly activity statistics endpoint", () => {
+            const endpoint = CepikAddressResolver.getActivityStatisticsHourlyEndpoint("20240101", "10");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/aktywnosc/20240101/10");
+        });
+    });
+
+    describe("getDictionaryStatisticsEndpoint", () => {
+        it("Should return dictionary statistics endpoint for a date", () => {
+            const endpoint = CepikAddressResolver.getDictionaryStatisticsEndpoint("20240101");
+            expect(endpoint).toBe("https://api.cepik.gov.pl/statystyki/slowniki/20240101");
         });
     });
 
@@ -409,7 +430,6 @@ describe("CepikAddressResolver", () => {
         });
 
         it("Should be static and not require instantiation", () => {
-            // All methods should be accessible without instantiation
             expect(CepikAddressResolver.vehiclesEndpoint).toBeDefined();
             expect(CepikAddressResolver.filesEndpoint).toBeDefined();
             expect(CepikAddressResolver.drivingLicencesEndpoint).toBeDefined();

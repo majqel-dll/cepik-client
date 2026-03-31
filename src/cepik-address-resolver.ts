@@ -1,5 +1,3 @@
-import { StatisticsSubjectEnum } from "./enums.js";
-
 export class CepikAddressResolver {
 
     private static get host(): string {
@@ -50,9 +48,37 @@ export class CepikAddressResolver {
         return `${this.host}/${atob(`c3RhdHlzdHlraQ==`)}`;
     };
 
-    public static getStatisticsEndpointFor(subject: StatisticsSubjectEnum): string {
-        return `${this.host}/${subject}`
-    }
+    public static getVehicleStatisticsEndpoint(date: string): string {
+        return `${this.statisticsEndpoint}/${atob(`cG9qYXpkeQ==`)}/${date}`;
+    };
+
+    public static getVehicleStatisticsForVoivodeshipEndpoint(date: string, voivodeship: string): string {
+        return `${this.statisticsEndpoint}/${atob(`cG9qYXpkeQ==`)}/${date}/${voivodeship}`;
+    };
+
+    public static get fileStatisticsEndpoint(): string {
+        return `${this.statisticsEndpoint}/${atob(`cGxpa2k=`)}`;
+    };
+
+    public static getFileStatisticsEndpoint(date: string): string {
+        return `${this.fileStatisticsEndpoint}/${date}`;
+    };
+
+    public static getFileStatisticsForFileEndpoint(date: string, fileId: string): string {
+        return `${this.fileStatisticsEndpoint}/${date}/${fileId}`;
+    };
+
+    public static getActivityStatisticsEndpoint(date: string): string {
+        return `${this.statisticsEndpoint}/${atob(`YWt0eXdub3Nj`)}/${date}`;
+    };
+
+    public static getActivityStatisticsHourlyEndpoint(date: string, id: string): string {
+        return `${this.statisticsEndpoint}/${atob(`YWt0eXdub3Nj`)}/${date}/${id}`;
+    };
+
+    public static getDictionaryStatisticsEndpoint(date: string): string {
+        return `${this.statisticsEndpoint}/${atob(`c2xvd25pa2k=`)}/${date}`;
+    };
 
     public static get versionEndpoint(): string {
         return `${this.host}/${atob(`dmVyc2lvbg==`)}`;
