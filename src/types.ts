@@ -6,7 +6,20 @@ export type CepikApiLoggerConfiguration = {
 
 export type BasicSearchParams = {
     limit?: number,
-}
+    page?: number,
+};
+
+export interface AttachQueryParams<T extends string = any> {
+    limit?: number,
+    fromDate?: Date | string,
+    toDate?: Date | string,
+    dateType?: 0 | 1,
+    isRegistered?: boolean,
+    showAllFields?: boolean,
+    fields?: T[],
+    page?: number,
+    sort?: T[],
+};
 
 export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
     ? BasicSearchParams & {
@@ -17,7 +30,6 @@ export type GetVehicleDataParams<T extends string | never> = [T] extends [never]
         isRegistered?: boolean,
         showAllFields?: boolean,
         fields?: Partial<GetVehicleDataResponseDataAttributes>[]
-        page?: number,
         sort?: Partial<GetVehicleDataResponseDataAttributes>[],
     } : {
         vehicleId: T,
@@ -31,13 +43,6 @@ export type GetVehicleDataErrorResponse = {
     "errorr-solution": string,
     "error-help": string,
     "error-code": string
-};
-
-export type GetVehicleDataResponse = {
-    data: GetVehicleDataResponseData[],
-    links: GetVehicleDataResponseLinks,
-    meta: GetVehicleDataResponseMeta,
-    rateLimitingRemaining: number,
 };
 
 type GetVehicleDataResponseData = {
@@ -121,7 +126,7 @@ type GetVehicleDataResponseDataAttributes = {
     "wlasciciel-wojewodztwo-kod": string
 };
 
-type GetVehicleDataResponseLinks = {
+type ResponseLinks = {
     first: string,
     last: string,
     next: string,
@@ -129,7 +134,7 @@ type GetVehicleDataResponseLinks = {
     self: string,
 };
 
-type GetVehicleDataResponseMeta = {
+type ResponseMetadata = {
     "contentType": string,
     "count": number,
     "schema:dateModified": string,
@@ -227,16 +232,49 @@ type GetSpecifiedVehicleDataResponseAttributes = {
     "wlasciciel-wojewodztwo-kod": string
 }
 
-export type GetSpecifiedVehicleDataResponse = {
-    data: GetSpecifiedVehicleDataResponseData[],
-    links: GetVehicleDataResponseLinks,
-    meta: GetVehicleDataResponseMeta,
+export type GetVehicleDataResponse = {
+    data: GetVehicleDataResponseData[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
     rateLimitingRemaining: number,
 };
 
-export type GetFilesDataParams = BasicSearchParams & {
-    fileId?: string,
+export type GetSpecifiedVehicleDataResponse = {
+    data: GetSpecifiedVehicleDataResponseData[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
 };
+
+export type GetFilesDataParams<T extends string | never> = [T] extends [never]
+    ? BasicSearchParams
+    : {
+        fileId?: T,
+    };
+
+export type GetFilesDataErrorResponse = {
+    id: string,
+    "errorr-result": string,
+    "errorr-reason": string,
+    "errorr-solution": string,
+    "error-help": string,
+    "error-code": string
+};
+
+export type GetFilesDataResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
+export type GetSpecifiedFileDataResponse = {
+    data: {}[],
+    links: ResponseLinks,
+    meta: ResponseMetadata,
+    rateLimitingRemaining: number,
+};
+
 
 export type GetDrivingLicenceDataParams = BasicSearchParams & {
     drivingLicenceId?: string,
