@@ -444,9 +444,9 @@ The compiled output is placed in the `dist/` directory.
 
 ## 📄 License
 
-[MIT © 2026](./LICENSE) [miqel-dll](https://github.com/miqel-dll)
+[MIT](./LICENSE) © 2026 [majqel-dll](https://github.com/majqel-dll)
 
 ---
 
-**Author**: [miqel-dll](https://github.com/miqel-dll)
-**Version**: 1.0.2
+**Author**: [majqel-dll](https://github.com/majqel-dll)
+**Version**: 1.0.3
