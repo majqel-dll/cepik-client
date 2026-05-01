@@ -1,6 +1,6 @@
 {
   "name": "cepik-api-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A modern TypeScript/JavaScript library for retrieving data from the public API of the Polish National Vehicles Database (CEPIK).",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/miqel-dll/cepik-client.git"
+    "url": "git+https://github.com/majqel-dll/cepik-client.git"
   },
   "keywords": [
     "cepik",
@@ -35,13 +35,13 @@
     "libs",
     "cepik-library"
   ],
-  "author": "miqel-dll",
+  "author": "majqel-dll",
   "license": "MIT",
   "sideEffects": false,
   "type": "module",
-  "homepage": "https://github.com/miqel-dll/cepik-client#readme",
+  "homepage": "https://github.com/majqel-dll/cepik-client#readme",
   "bugs": {
-    "url": "https://github.com/miqel-dll/cepik-client/issues"
+    "url": "https://github.com/majqel-dll/cepik-client/issues"
   },
   "jest": {
     "testEnvironment": "node",
